@@ -1,14 +1,14 @@
-__version__ = '0.1.0'
+__version__ = '1.0.0'
 
 bl_info = {
     'name': 'Rhubarb Lipsync',
     'author': 'Andrew Charlton',
-    'version': (0, 1, 0),
+    'version': (1, 0, 0),
     'blender': (2, 7, 9),
     'location': 'Properties > Armature',
     'description': 'Integrate Rhubarb Lipsync into Blender',
-    'wiki_url': '',
-    'tracker_url': '',
+    'wiki_url': 'https://github.com/adcharlton/blender-rhubarb-lipsync',
+    'tracker_url': 'https://github.com/adcharlton/blender-rhubarb-lipsync/issues',
     'support': 'COMMUNITY',
     'category': 'Animation',
 }
