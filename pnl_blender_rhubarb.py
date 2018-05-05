@@ -33,11 +33,9 @@ class RhubarbLipsyncPanel(bpy.types.Panel):
 
         row = layout.row(align=True)
         row.prop(prop, 'sound_file', text='Sound file')
-        row.operator("object.sound_file_selector", icon="FILE_FOLDER", text="")
 
         row = layout.row(align=True)
         row.prop(prop, 'dialog_file', text='Dialog file')
-        row.operator("object.dialog_file_selector", icon="FILE_FOLDER", text="")
 
         row = layout.row()
         row.prop(prop, 'start_frame', text='Start frame')
@@ -77,36 +75,12 @@ class MouthShapesProperty(bpy.types.PropertyGroup):
     mouth_h = poses
     mouth_x = poses
 
-    sound_file = bpy.props.StringProperty(name="sound_file")
-    dialog_file = bpy.props.StringProperty(name="dialog_file")
+    sound_file = bpy.props.StringProperty(name="sound_file",subtype='FILE_PATH')
+    dialog_file = bpy.props.StringProperty(name="dialog_file",subtype='FILE_PATH')
 
     start_frame = bpy.props.IntProperty(name="start_frame")
 
-class SoundFileSelector(bpy.types.Operator, ImportHelper):
-    bl_idname = "object.sound_file_selector"
-    bl_label = "some folder"
-
-    filename_ext = ""
-
-    def execute(self, context):
-        fdir = self.properties.filepath
-        context.object.pose_library.mouth_shapes.sound_file = fdir
-        return{'FINISHED'}
-
-class DialogFileSelector(bpy.types.Operator, ImportHelper):
-    bl_idname = "object.dialog_file_selector"
-    bl_label = "some folder"
-
-    filename_ext = "txt"
-
-    def execute(self, context):
-        fdir = self.properties.filepath
-        context.object.pose_library.mouth_shapes.dialog_file = fdir
-        return {'FINISHED'}
-
 def register():
-    bpy.utils.register_class(SoundFileSelector)
-    bpy.utils.register_class(DialogFileSelector)
     bpy.utils.register_class(MouthShapesProperty)
     bpy.utils.register_class(RhubarbLipsyncPanel)
 

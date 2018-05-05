@@ -9,11 +9,15 @@ import json
 
 
 class RhubarbLipsyncOperator(bpy.types.Operator):
-    """Move an object with the mouse, example"""
+    """Run Rhubarb lipsync"""
     bl_idname = "object.rhubarb_lipsync"
     bl_label = "Rhubarb lipsync"
 
     cue_prefix = 'Mouth_'
+
+    @classmethod
+    def poll(cls, context):
+        return context.selected_pose_bones
 
     def modal(self, context, event):
         try:
@@ -34,7 +38,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
 
                     pose_index = context.object.pose_library.mouth_shapes['mouth_' + cue['value'].lower()]
 
-                    frame_num = round(cue['start'] * fps)
+                    frame_num = round(cue['start'] * fps) + context.object.pose_library.mouth_shapes.start_frame
 
                     context.scene.frame_set(frame_num)
 
@@ -54,10 +58,15 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
 
 
     def invoke(self, context, event):
+        user_preferences = context.user_preferences
+        addon_prefs = user_preferences.addons[__package__].preferences
+
         inputfile = context.object.pose_library.mouth_shapes.sound_file
         dialogfile = context.object.pose_library.mouth_shapes.dialog_file
-        self.rhubarb = subprocess.Popen("D:/Cloud/OneDrive/rhubarb/rhubarb.exe -f json --machineReadable --dialogFile %s --extendedShapes GHX %s" % (dialogfile, inputfile),
-                                   stdout=subprocess.PIPE, universal_newlines=True)
+        executable = bpy.path.abspath(addon_prefs.executable_path)
+        self.rhubarb = subprocess.Popen("%s -f json --machineReadable --dialogFile %s --extendedShapes GHX %s"
+                                        % (executable, dialogfile, inputfile),
+                                        stdout=subprocess.PIPE, universal_newlines=True)
 
         wm = context.window_manager
         self._timer = wm.event_timer_add(1, context.window)

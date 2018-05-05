@@ -22,8 +22,9 @@ if 'bpy' in locals():
     if 'op_blender_rhubarb' in locals():
         importlib.reload(op_blender_rhubarb)
         importlib.reload(pnl_blender_rhubarb)
+        importlib.reload(prefs_blender_rhubarb)
 else:
-    from . import op_blender_rhubarb, pnl_blender_rhubarb
+    from . import op_blender_rhubarb, pnl_blender_rhubarb, prefs_blender_rhubarb
 
 import bpy
 
@@ -31,8 +32,10 @@ import bpy
 def register():
     op_blender_rhubarb.register()
     pnl_blender_rhubarb.register()
+    prefs_blender_rhubarb.register()
 
 
 def unregister():
     op_blender_rhubarb.unregister()
     pnl_blender_rhubarb.unregister()
+    prefs_blender_rhubarb.unregister()
