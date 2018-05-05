@@ -63,9 +63,14 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
 
         inputfile = context.object.pose_library.mouth_shapes.sound_file
         dialogfile = context.object.pose_library.mouth_shapes.dialog_file
+        if dialogfile:
+            dialog = "--dialogFile %s" % dialogfile
+        else:
+            dialog = ""
+
         executable = bpy.path.abspath(addon_prefs.executable_path)
-        self.rhubarb = subprocess.Popen("%s -f json --machineReadable --dialogFile %s --extendedShapes GHX %s"
-                                        % (executable, dialogfile, inputfile),
+        self.rhubarb = subprocess.Popen("%s -f json --machineReadable %s --extendedShapes GHX %s"
+                                        % (executable, dialog, inputfile),
                                         stdout=subprocess.PIPE, universal_newlines=True)
 
         wm = context.window_manager
