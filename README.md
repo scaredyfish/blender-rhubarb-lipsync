@@ -25,4 +25,4 @@ Select your sound file, and dialog file (optional), and the start frame where yo
 
 ![Options panel](img/panel.PNG)
 
-Click the Rhubarb Lip Sync button and wait for the process to complete. There is no progress indicator yet, but your keyframes will appear when the process is complete.
+In pose mode, select the bones you want to keyframe, then click the Rhubarb Lip Sync button and wait for the process to complete. There is no progress indicator yet, but your keyframes will appear when the process is complete.
