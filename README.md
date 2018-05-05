@@ -12,7 +12,7 @@ http://www.youtube.com/watch?v=azrpByrvw-o
 
 ## Usage
 
-First, set the path to the Rhubarb Lipsync executable in user preferences (download from [https://github.com/DanielSWolf/rhubarb-lip-sync])
+First, set the path to the Rhubarb Lipsync executable in user preferences (download from [https://github.com/DanielSWolf/rhubarb-lip-sync](https://github.com/DanielSWolf/rhubarb-lip-sync))
 
 ![Preferences](img/prefs.PNG)
 
