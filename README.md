@@ -18,7 +18,7 @@ First, set the path to the Rhubarb Lipsync executable in user preferences (downl
 
 Create a [pose library](https://docs.blender.org/manual/en/dev/rigging/armatures/properties/pose_library.html) with the mouth shapes described in the Rhubarb Lip Sync documentation. You can name your poses whatever you like.
 
-![Pose library](img/poselib.png)
+![Pose library](img/poselib.PNG)
 
 Match your poses with the Rhubarb Lip Sync names.
 Select your sound file, and dialog file (optional), and the start frame where your sound begins.
