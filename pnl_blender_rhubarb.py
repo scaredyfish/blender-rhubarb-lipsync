@@ -18,31 +18,36 @@ class RhubarbLipsyncPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        prop = context.object.pose_library.mouth_shapes
+        if context.object.pose_library:
 
-        col = layout.column()
-        col.prop(prop, 'mouth_a', "Mouth A")
-        col.prop(prop, 'mouth_b', "Mouth B")
-        col.prop(prop, 'mouth_c', "Mouth C")
-        col.prop(prop, 'mouth_d', "Mouth D")
-        col.prop(prop, 'mouth_e', "Mouth E")
-        col.prop(prop, 'mouth_f', "Mouth F")
-        col.prop(prop, 'mouth_g', "Mouth G")
-        col.prop(prop, 'mouth_h', "Mouth H")
-        col.prop(prop, 'mouth_x', "Mouth X")
 
-        row = layout.row(align=True)
-        row.prop(prop, 'sound_file', text='Sound file')
+            prop = context.object.pose_library.mouth_shapes
 
-        row = layout.row(align=True)
-        row.prop(prop, 'dialog_file', text='Dialog file')
+            col = layout.column()
+            col.prop(prop, 'mouth_a', "Mouth A")
+            col.prop(prop, 'mouth_b', "Mouth B")
+            col.prop(prop, 'mouth_c', "Mouth C")
+            col.prop(prop, 'mouth_d', "Mouth D")
+            col.prop(prop, 'mouth_e', "Mouth E")
+            col.prop(prop, 'mouth_f', "Mouth F")
+            col.prop(prop, 'mouth_g', "Mouth G")
+            col.prop(prop, 'mouth_h', "Mouth H")
+            col.prop(prop, 'mouth_x', "Mouth X")
 
-        row = layout.row()
-        row.prop(prop, 'start_frame', text='Start frame')
+            row = layout.row(align=True)
+            row.prop(prop, 'sound_file', text='Sound file')
 
-        row = layout.row()
-        row.operator(operator = "object.rhubarb_lipsync")
+            row = layout.row(align=True)
+            row.prop(prop, 'dialog_file', text='Dialog file')
 
+            row = layout.row()
+            row.prop(prop, 'start_frame', text='Start frame')
+
+            row = layout.row()
+            row.operator(operator = "object.rhubarb_lipsync")
+        else:
+            row = layout.row(align=True)
+            row.label(text="Rhubarb Lipsync requires a pose library")
 
 
 pose_markers = []
