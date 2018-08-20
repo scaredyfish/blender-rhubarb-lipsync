@@ -40,12 +40,17 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
 
                     frame_num = round(cue['start'] * fps) + context.object.pose_library.mouth_shapes.start_frame
 
-                    context.scene.frame_set(frame_num)
 
                     bpy.ops.poselib.apply_pose(pose_index=pose_index)
+     
+                    
                     for bone in context.selected_pose_bones:
-                        bone.keyframe_insert('location')
-                        bone.keyframe_insert('rotation_euler')
+                        bone.keyframe_insert(data_path='location', frame=frame_num)
+                        if bone.rotation_mode == 'QUATERNION':
+                            bone.keyframe_insert(data_path='rotation_quaternion', frame=frame_num)
+                        else:
+                            bone.keyframe_insert(data_path='rotation_euler', frame=frame_num)
+                        bone.keyframe_insert(data_path='scale', frame=frame_num)
 
 
                 return {'FINISHED'}
