@@ -34,16 +34,15 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                 if not results['mouthCues']: return
 
                 for cue in results['mouthCues']:
-                    print("start: {0} frame: {1} value: {2}".format(cue['start'], cue['start'] * fps , cue['value']))
+                    frame_num = round(cue['start'] * fps) + context.object.pose_library.mouth_shapes.start_frame
+                    
+                    print("start: {0} frame: {1} value: {2}".format(cue['start'], frame_num , cue['value']))
 
                     mouth_shape = 'mouth_' + cue['value'].lower()
                     if mouth_shape in context.object.pose_library.mouth_shapes:
                         pose_index = context.object.pose_library.mouth_shapes[mouth_shape]
                     else:
                         pose_index = 0
-    
-                    frame_num = round(cue['start'] * fps) + context.object.pose_library.mouth_shapes.start_frame
-
 
                     bpy.ops.poselib.apply_pose(pose_index=pose_index)
      
