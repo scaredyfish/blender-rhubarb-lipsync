@@ -69,8 +69,8 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
         user_preferences = context.user_preferences
         addon_prefs = user_preferences.addons[__package__].preferences
 
-        inputfile = context.object.pose_library.mouth_shapes.sound_file
-        dialogfile = context.object.pose_library.mouth_shapes.dialog_file
+        inputfile = bpy.path.abspath(context.object.pose_library.mouth_shapes.sound_file)
+        dialogfile = bpy.path.abspath(context.object.pose_library.mouth_shapes.dialog_file)
         if dialogfile:
             dialog = "--dialogFile %s" % dialogfile
         else:
