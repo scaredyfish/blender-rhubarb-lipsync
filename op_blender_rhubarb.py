@@ -14,6 +14,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
     bl_label = "Rhubarb lipsync"
 
     cue_prefix = 'Mouth_'
+    hold_frame_threshold = 10
 
     @classmethod
     def poll(cls, context):
@@ -30,12 +31,20 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                 results = json.loads(stdout)
                 fps = context.scene.render.fps
                 lib = context.object.pose_library
+                last_frame = 0
+                prev_pose = 0
 
                 if not results['mouthCues']: return
 
                 for cue in results['mouthCues']:
                     frame_num = round(cue['start'] * fps) + context.object.pose_library.mouth_shapes.start_frame
                     
+                    # add hold key if time since last key is large
+                    if frame_num - last_frame > self.hold_frame_threshold:
+                        print("hold frame: {0}".format(frame_num- self.hold_frame_threshold))
+                        bpy.ops.poselib.apply_pose(pose_index=prev_pose)
+                        self.set_keyframes(context, frame_num - self.hold_frame_threshold);
+
                     print("start: {0} frame: {1} value: {2}".format(cue['start'], frame_num , cue['value']))
 
                     mouth_shape = 'mouth_' + cue['value'].lower()
@@ -45,16 +54,11 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                         pose_index = 0
 
                     bpy.ops.poselib.apply_pose(pose_index=pose_index)
-     
+                    self.set_keyframes(context, frame_num);
                     
-                    for bone in context.selected_pose_bones:
-                        bone.keyframe_insert(data_path='location', frame=frame_num)
-                        if bone.rotation_mode == 'QUATERNION':
-                            bone.keyframe_insert(data_path='rotation_quaternion', frame=frame_num)
-                        else:
-                            bone.keyframe_insert(data_path='rotation_euler', frame=frame_num)
-                        bone.keyframe_insert(data_path='scale', frame=frame_num)
 
+                    prev_pose = pose_index
+                    last_frame = frame_num
 
                 return {'FINISHED'}
         except subprocess.TimeoutExpired as ex:
@@ -64,6 +68,14 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
             print(template.format(type(ex).__name__, ex.args))
             return {'CANCELLED'}
 
+    def set_keyframes(self, context, frame):
+        for bone in context.selected_pose_bones:
+            bone.keyframe_insert(data_path='location', frame=frame)
+            if bone.rotation_mode == 'QUATERNION':
+                bone.keyframe_insert(data_path='rotation_quaternion', frame=frame)
+            else:
+                bone.keyframe_insert(data_path='rotation_euler', frame=frame)
+            bone.keyframe_insert(data_path='scale', frame=frame)
 
     def invoke(self, context, event):
         user_preferences = context.user_preferences
