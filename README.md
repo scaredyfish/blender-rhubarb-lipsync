@@ -10,6 +10,12 @@ Rhubarb Lip Sync is a command-line tool that automatically creates mouth animati
 
 http://www.youtube.com/watch?v=azrpByrvw-o
 
+and here's a tutorial video from Studio YogYog
+
+[![Tutorial video](http://img.youtube.com/vi/xfI94VIX6BA/0.jpg)](https://youtu.be/xfI94VIX6BA)
+
+https://youtu.be/xfI94VIX6BA
+
 ## Usage
 
 First, set the path to the Rhubarb Lipsync executable in user preferences (download from [https://github.com/DanielSWolf/rhubarb-lip-sync](https://github.com/DanielSWolf/rhubarb-lip-sync))
