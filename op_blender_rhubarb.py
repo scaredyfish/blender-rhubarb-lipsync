@@ -22,19 +22,33 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
 
     def modal(self, context, event):
         try:
-            (stdout, stderr) = self.rhubarb.communicate(timeout=1)
+            stderr =  self.rhubarb.stderr.readline()
 
-            if stdout:
+            try:
+                result = json.loads(stderr);
+                if result['type'] == 'progress':
+                    print(result['log']['message'])
+
+                if result['type'] == 'failure':
+                    self.report(type={'ERROR'}, message=result['reason'])
+                    return {'CANCELLED'}
+
+            except ValueError:
+                pass
+            
+            self.rhubarb.poll()
+
+            if self.rhubarb.returncode is not None:
                 wm = context.window_manager
                 wm.event_timer_remove(self._timer)
 
+                stdout = self.rhubarb.stdout.read()
+     
                 results = json.loads(stdout)
                 fps = context.scene.render.fps
                 lib = context.object.pose_library
                 last_frame = 0
                 prev_pose = 0
-
-                if not results['mouthCues']: return
 
                 for cue in results['mouthCues']:
                     frame_num = round(cue['start'] * fps) + context.object.pose_library.mouth_shapes.start_frame
@@ -61,6 +75,8 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                     last_frame = frame_num
 
                 return {'FINISHED'}
+
+            return {'PASS_THROUGH'}
         except subprocess.TimeoutExpired as ex:
             return {'PASS_THROUGH'}
         except Exception as ex:
@@ -91,10 +107,10 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
         executable = bpy.path.abspath(addon_prefs.executable_path)
         self.rhubarb = subprocess.Popen("%s -f json --machineReadable %s --extendedShapes GHX %s"
                                         % (executable, dialog, inputfile),
-                                        stdout=subprocess.PIPE, universal_newlines=True)
+                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 
         wm = context.window_manager
-        self._timer = wm.event_timer_add(1, context.window)
+        self._timer = wm.event_timer_add(0.1, context.window)
 
         wm.modal_handler_add(self)
 
