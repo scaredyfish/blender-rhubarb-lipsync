@@ -8,15 +8,6 @@ from queue import Queue, Empty
 import json
 
 
-def pipe_reader(pipe, queue):
-    while True:
-        line=pipe.readline()
-        if not line: break
-        queue.put(line)
-    #for line in iter(pipe.readline, b''):
-    #    queue.put(line)
-    pipe.close()
-
 class RhubarbLipsyncOperator(bpy.types.Operator):
     """Run Rhubarb lipsync"""
     bl_idname = "object.rhubarb_lipsync"
@@ -24,7 +15,6 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
 
     cue_prefix = 'Mouth_'
     hold_frame_threshold = 10
-    q = Queue()
 
     @classmethod
     def poll(cls, context):
@@ -32,9 +22,9 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
 
     def modal(self, context, event):
         try:
+            stderr =  self.rhubarb.stderr.readline()
+
             try:
-                stderr = self.q.get_nowait();
-               
                 result = json.loads(stderr);
                 if result['type'] == 'progress':
                     print(result['log']['message'])
@@ -42,59 +32,53 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                 if result['type'] == 'failure':
                     self.report(type={'ERROR'}, message=result['reason'])
                     return {'CANCELLED'}
-            except Empty:
-                pass
+
             except ValueError:
                 pass
             
             self.rhubarb.poll()
 
-            if self.rhubarb.returncode == 1:
-                self.report(type={'ERROR'}, message=result['reason'])
-                return {'CANCELLED'}
-            elif self.rhubarb.returncode == 0:
+            if self.rhubarb.returncode is not None:
                 wm = context.window_manager
                 wm.event_timer_remove(self._timer)
 
                 stdout = self.rhubarb.stdout.read()
-                
-                try:
-                    results = json.loads(stdout)
-                    fps = context.scene.render.fps
-                    lib = context.object.pose_library
-                    last_frame = 0
-                    prev_pose = 0
+     
+                results = json.loads(stdout)
+                fps = context.scene.render.fps
+                lib = context.object.pose_library
+                last_frame = 0
+                prev_pose = 0
 
-                    for cue in results['mouthCues']:
-                        frame_num = round(cue['start'] * fps) + context.object.pose_library.mouth_shapes.start_frame
+                for cue in results['mouthCues']:
+                    frame_num = round(cue['start'] * fps) + context.object.pose_library.mouth_shapes.start_frame
                     
-                        # add hold key if time since last key is large
-                        if frame_num - last_frame > self.hold_frame_threshold:
-                            print("hold frame: {0}".format(frame_num- self.hold_frame_threshold))
-                            bpy.ops.poselib.apply_pose(pose_index=prev_pose)
-                            self.set_keyframes(context, frame_num - self.hold_frame_threshold);
+                    # add hold key if time since last key is large
+                    if frame_num - last_frame > self.hold_frame_threshold:
+                        print("hold frame: {0}".format(frame_num- self.hold_frame_threshold))
+                        bpy.ops.poselib.apply_pose(pose_index=prev_pose)
+                        self.set_keyframes(context, frame_num - self.hold_frame_threshold);
 
-                        print("start: {0} frame: {1} value: {2}".format(cue['start'], frame_num , cue['value']))
+                    print("start: {0} frame: {1} value: {2}".format(cue['start'], frame_num , cue['value']))
 
-                        mouth_shape = 'mouth_' + cue['value'].lower()
-                        if mouth_shape in context.object.pose_library.mouth_shapes:
-                            pose_index = context.object.pose_library.mouth_shapes[mouth_shape]
-                        else:
-                            pose_index = 0
+                    mouth_shape = 'mouth_' + cue['value'].lower()
+                    if mouth_shape in context.object.pose_library.mouth_shapes:
+                        pose_index = context.object.pose_library.mouth_shapes[mouth_shape]
+                    else:
+                        pose_index = 0
 
-                        bpy.ops.poselib.apply_pose(pose_index=pose_index)
-                        self.set_keyframes(context, frame_num);
+                    bpy.ops.poselib.apply_pose(pose_index=pose_index)
+                    self.set_keyframes(context, frame_num);
                     
 
-                        prev_pose = pose_index
-                        last_frame = frame_num
-                except ValueError:
-                    pass
+                    prev_pose = pose_index
+                    last_frame = frame_num
 
                 return {'FINISHED'}
-            else:
-                return {'PASS_THROUGH'}
 
+            return {'PASS_THROUGH'}
+        except subprocess.TimeoutExpired as ex:
+            return {'PASS_THROUGH'}
         except Exception as ex:
             template = "An exception of type {0} occurred. Arguments:\n{1!r}"
             print(template.format(type(ex).__name__, ex.args))
@@ -125,12 +109,9 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                                         % (executable, dialog, inputfile),
                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 
-        t = Thread(target=pipe_reader, args=(self.rhubarb.stderr, self.q))
-        t.daemon = True
-        t.start()
-
         wm = context.window_manager
         self._timer = wm.event_timer_add(0.1, context.window)
+
         wm.modal_handler_add(self)
 
         return {'RUNNING_MODAL'}
