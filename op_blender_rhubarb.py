@@ -120,7 +120,8 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
 
         return {'RUNNING_MODAL'}
 
-
+    def execute(self, context):
+        return self.invoke(context, None)
 
     def finished(self, context):
         wm = context.window_manager
