@@ -14,7 +14,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
     bl_label = "Rhubarb lipsync"
 
     cue_prefix = 'Mouth_'
-    hold_frame_threshold = 10
+    hold_frame_threshold = 4
 
     @classmethod
     def poll(cls, context):
