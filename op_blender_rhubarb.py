@@ -16,7 +16,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
     bl_label = "Rhubarb lipsync"
 
     cue_prefix = 'Mouth_'
-    hold_frame_threshold = 10
+    hold_frame_threshold = 4
 
     @classmethod
     def poll(cls, context):
@@ -40,7 +40,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                 pass
             except TypeError:
                 pass
-            except JSONDecodeError:
+            except json.decoder.JSONDecodeError:
                 pass
             
             self.rhubarb.poll()
@@ -84,6 +84,10 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
             return {'PASS_THROUGH'}
         except subprocess.TimeoutExpired as ex:
             return {'PASS_THROUGH'}
+        except json.decoder.JSONDecodeError:
+            print(stdout)
+            print("Error!!!")
+            return {'CANCELLED'}
         except Exception as ex:
             template = "An exception of type {0} occurred. Arguments:\n{1!r}"
             print(template.format(type(ex).__name__, ex.args))
@@ -104,16 +108,18 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
 
         inputfile = bpy.path.abspath(context.object.pose_library.mouth_shapes.sound_file)
         dialogfile = bpy.path.abspath(context.object.pose_library.mouth_shapes.dialog_file)
+        executable = bpy.path.abspath(addon_prefs.executable_path)
+        
+        command = [executable, "-f", "json", "--machineReadable", "--extendedShapes", "GHX", inputfile]
+        
         if dialogfile:
-            dialog = "--dialogFile \"%s\"" % dialogfile
+            command.append("--dialogFile")
+            command.append(dialogfile )
         else:
             dialog = ""
-
-        executable = bpy.path.abspath(addon_prefs.executable_path)
-
-        print("%s -f json --machineReadable -d \"%s\" --extendedShapes GHX %s" % (executable, dialog, inputfile))
-        self.rhubarb = subprocess.Popen("%s -f json --machineReadable %s --extendedShapes GHX \"%s\""
-                                        % (executable, dialog, inputfile),
+        
+        
+        self.rhubarb = subprocess.Popen(command,
                                         stdout=subprocess.PIPE, universal_newlines=True)
 
         wm = context.window_manager
@@ -123,7 +129,8 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
 
         return {'RUNNING_MODAL'}
 
-
+    def execute(self, context):
+        return self.invoke(context, None)
 
     def finished(self, context):
         wm = context.window_manager
