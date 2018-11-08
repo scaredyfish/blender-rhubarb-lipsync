@@ -1,12 +1,14 @@
 import bpy
 from bpy.props import IntProperty, FloatProperty
+import blf
+import bgl
 import io
 import sys
+import select
 import subprocess
 from threading  import Thread
 from queue import Queue, Empty
 import json
-
 
 class RhubarbLipsyncOperator(bpy.types.Operator):
     """Run Rhubarb lipsync"""
@@ -22,12 +24,13 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
 
     def modal(self, context, event):
         try:
-            stderr =  self.rhubarb.stderr.readline()
-
+            (stdout, stderr) = self.rhubarb.communicate(timeout=1)
+        
             try:
-                result = json.loads(stderr);
+                result = json.loads(stderr)
                 if result['type'] == 'progress':
                     print(result['log']['message'])
+                    self.message = result['log']['message']
 
                 if result['type'] == 'failure':
                     self.report(type={'ERROR'}, message=result['reason'])
@@ -35,14 +38,16 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
 
             except ValueError:
                 pass
+            except TypeError:
+                pass
+            except JSONDecodeError:
+                pass
             
             self.rhubarb.poll()
 
             if self.rhubarb.returncode is not None:
                 wm = context.window_manager
                 wm.event_timer_remove(self._timer)
-
-                stdout = self.rhubarb.stdout.read()
      
                 results = json.loads(stdout)
                 fps = context.scene.render.fps
@@ -51,13 +56,13 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                 prev_pose = 0
 
                 for cue in results['mouthCues']:
-                    frame_num = round(cue['start'] * fps) + context.object.pose_library.mouth_shapes.start_frame
+                    frame_num = round(cue['start'] * fps) + lib.mouth_shapes.start_frame
                     
                     # add hold key if time since last key is large
                     if frame_num - last_frame > self.hold_frame_threshold:
                         print("hold frame: {0}".format(frame_num- self.hold_frame_threshold))
                         bpy.ops.poselib.apply_pose(pose_index=prev_pose)
-                        self.set_keyframes(context, frame_num - self.hold_frame_threshold);
+                        self.set_keyframes(context, frame_num - self.hold_frame_threshold)
 
                     print("start: {0} frame: {1} value: {2}".format(cue['start'], frame_num , cue['value']))
 
@@ -68,7 +73,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                         pose_index = 0
 
                     bpy.ops.poselib.apply_pose(pose_index=pose_index)
-                    self.set_keyframes(context, frame_num);
+                    self.set_keyframes(context, frame_num)
                     
 
                     prev_pose = pose_index
@@ -100,17 +105,19 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
         inputfile = bpy.path.abspath(context.object.pose_library.mouth_shapes.sound_file)
         dialogfile = bpy.path.abspath(context.object.pose_library.mouth_shapes.dialog_file)
         if dialogfile:
-            dialog = "--dialogFile %s" % dialogfile
+            dialog = "--dialogFile \"%s\"" % dialogfile
         else:
             dialog = ""
 
         executable = bpy.path.abspath(addon_prefs.executable_path)
-        self.rhubarb = subprocess.Popen("%s -f json --machineReadable %s --extendedShapes GHX %s"
+
+        print("%s -f json --machineReadable -d \"%s\" --extendedShapes GHX %s" % (executable, dialog, inputfile))
+        self.rhubarb = subprocess.Popen("%s -f json --machineReadable %s --extendedShapes GHX \"%s\""
                                         % (executable, dialog, inputfile),
-                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+                                        stdout=subprocess.PIPE, universal_newlines=True)
 
         wm = context.window_manager
-        self._timer = wm.event_timer_add(0.1, context.window)
+        self._timer = wm.event_timer_add(2, context.window)
 
         wm.modal_handler_add(self)
 
