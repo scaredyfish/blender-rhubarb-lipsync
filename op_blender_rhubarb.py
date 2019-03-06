@@ -103,8 +103,8 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
             bone.keyframe_insert(data_path='scale', frame=frame)
 
     def invoke(self, context, event):
-        user_preferences = context.user_preferences
-        addon_prefs = user_preferences.addons[__package__].preferences
+        preferences = context.preferences
+        addon_prefs = preferences.addons[__package__].preferences
 
         inputfile = bpy.path.abspath(context.object.pose_library.mouth_shapes.sound_file)
         dialogfile = bpy.path.abspath(context.object.pose_library.mouth_shapes.dialog_file)
@@ -121,7 +121,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                                         stdout=subprocess.PIPE, universal_newlines=True)
 
         wm = context.window_manager
-        self._timer = wm.event_timer_add(2, context.window)
+        self._timer = wm.event_timer_add(2, window=context.window)
 
         wm.modal_handler_add(self)
 

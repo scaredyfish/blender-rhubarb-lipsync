@@ -24,15 +24,15 @@ class RhubarbLipsyncPanel(bpy.types.Panel):
             prop = context.object.pose_library.mouth_shapes
 
             col = layout.column()
-            col.prop(prop, 'mouth_a', "Mouth A (MBP)")
-            col.prop(prop, 'mouth_b', "Mouth B (EE/etc)")
-            col.prop(prop, 'mouth_c', "Mouth C (E)")
-            col.prop(prop, 'mouth_d', "Mouth D (AI)")
-            col.prop(prop, 'mouth_e', "Mouth E (O)")
-            col.prop(prop, 'mouth_f', "Mouth F (WQ)")
-            col.prop(prop, 'mouth_g', "Mouth G (FV)")
-            col.prop(prop, 'mouth_h', "Mouth H (L)")
-            col.prop(prop, 'mouth_x', "Mouth X (rest)")
+            col.prop(prop, 'mouth_a', text="Mouth A (MBP)")
+            col.prop(prop, 'mouth_b', text="Mouth B (EE/etc)")
+            col.prop(prop, 'mouth_c', text="Mouth C (E)")
+            col.prop(prop, 'mouth_d', text="Mouth D (AI)")
+            col.prop(prop, 'mouth_e', text="Mouth E (O)")
+            col.prop(prop, 'mouth_f', text="Mouth F (WQ)")
+            col.prop(prop, 'mouth_g', text="Mouth G (FV)")
+            col.prop(prop, 'mouth_h', text="Mouth H (L)")
+            col.prop(prop, 'mouth_x', text="Mouth X (rest)")
 
             row = layout.row(align=True)
             row.prop(prop, 'sound_file', text='Sound file')
@@ -70,20 +70,20 @@ poses = bpy.props.EnumProperty(
 )
 
 class MouthShapesProperty(bpy.types.PropertyGroup):
-    mouth_a = poses
-    mouth_b = poses
-    mouth_c = poses
-    mouth_d = poses
-    mouth_e = poses
-    mouth_f = poses
-    mouth_g = poses
-    mouth_h = poses
-    mouth_x = poses
+    mouth_a : poses
+    mouth_b : poses
+    mouth_c : poses
+    mouth_d : poses
+    mouth_e : poses
+    mouth_f : poses
+    mouth_g : poses
+    mouth_h : poses
+    mouth_x : poses
 
-    sound_file = bpy.props.StringProperty(name="sound_file",subtype='FILE_PATH')
-    dialog_file = bpy.props.StringProperty(name="dialog_file",subtype='FILE_PATH')
+    sound_file : bpy.props.StringProperty(name="sound_file",subtype='FILE_PATH')
+    dialog_file : bpy.props.StringProperty(name="dialog_file",subtype='FILE_PATH')
 
-    start_frame = bpy.props.IntProperty(name="start_frame")
+    start_frame : bpy.props.IntProperty(name="start_frame")
 
 def register():
     bpy.utils.register_class(MouthShapesProperty)

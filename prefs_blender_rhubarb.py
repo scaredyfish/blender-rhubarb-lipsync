@@ -6,12 +6,12 @@ from bpy.props import EnumProperty
 class RhubarbAddonPreferences(AddonPreferences):
     bl_idname = __package__
 
-    executable_path = StringProperty(
+    executable_path : StringProperty(
             name="Rhubarb lipsync executable",
             subtype='FILE_PATH',
             )
      
-    recognizer = EnumProperty(
+    recognizer : EnumProperty(
             name = "Recognizer",
             items = [
                     ("pocketSphinx", "pocketSphinx", "PocketSphinx is an open-source speech recognition library that generally gives good results for English."),
