@@ -20,6 +20,8 @@ https://youtu.be/xfI94VIX6BA
 
 First, set the path to the Rhubarb Lipsync executable in user preferences (download from [https://github.com/DanielSWolf/rhubarb-lip-sync](https://github.com/DanielSWolf/rhubarb-lip-sync))
 
+You can also set the recognizer here. PocketSphinx is recommended for English language, phonetic may give better results for other languages.
+
 ![Preferences](img/prefs.PNG)
 
 Create a [pose library](https://docs.blender.org/manual/en/dev/rigging/armatures/properties/pose_library.html) with the mouth shapes described in the Rhubarb Lip Sync documentation. You can name your poses whatever you like.
