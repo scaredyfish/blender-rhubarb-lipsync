@@ -14,8 +14,6 @@ bl_info = {
 }
 
 
-
-
 if 'bpy' in locals():
     import importlib
 
