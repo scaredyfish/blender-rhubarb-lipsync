@@ -18,6 +18,10 @@ https://youtu.be/xfI94VIX6BA
 
 ## Usage
 
+Download a release from https://github.com/scaredyfish/blender-rhubarb-lipsync/releases
+
+_Use version 1.0.5 for Blender 2.79, version 2.0 onwards supports only Blender 2.80._
+
 First, set the path to the Rhubarb Lipsync executable in user preferences (download from [https://github.com/DanielSWolf/rhubarb-lip-sync](https://github.com/DanielSWolf/rhubarb-lip-sync))
 
 You can also set the recognizer here. PocketSphinx is recommended for English language, phonetic may give better results for other languages.
