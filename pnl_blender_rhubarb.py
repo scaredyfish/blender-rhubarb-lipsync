@@ -93,4 +93,5 @@ def register():
 
 
 def unregister():
+    bpy.utils.unregister_class(MouthShapesProperty)
     bpy.utils.unregister_class(RhubarbLipsyncPanel)
