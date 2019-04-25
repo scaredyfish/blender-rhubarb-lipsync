@@ -1,9 +1,9 @@
-__version__ = '2.0.0'
+__version__ = '2.0.1'
 
 bl_info = {
     'name': 'Rhubarb Lipsync',
     'author': 'Andrew Charlton',
-    'version': (2, 0, 0),
+    'version': (2, 0, 1),
     'blender': (2, 80, 0),
     'location': 'Properties > Armature',
     'description': 'Integrate Rhubarb Lipsync into Blender',
