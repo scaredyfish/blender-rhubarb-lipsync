@@ -20,7 +20,9 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.selected_pose_bones and context.object.pose_library.mouth_shapes.sound_file
+        return context.preferences.addons[__package__].user_preferences.executable_path and \
+            context.selected_pose_bones and \
+            context.object.pose_library.mouth_shapes.sound_file
 
     def modal(self, context, event):
         try:

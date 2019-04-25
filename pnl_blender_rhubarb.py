@@ -44,6 +44,11 @@ class RhubarbLipsyncPanel(bpy.types.Panel):
             row.prop(prop, 'start_frame', text='Start frame')
 
             row = layout.row()
+
+            if not (context.user_preferences.addons[__package__].preferences.executable_path):
+                row.label(text="Please set rhubarb executable location in addon preferences")
+                row = layout.row()
+
             row.operator(operator = "object.rhubarb_lipsync")
         else:
             row = layout.row(align=True)
