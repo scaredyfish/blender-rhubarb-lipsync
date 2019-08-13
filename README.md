@@ -28,7 +28,7 @@ You can also set the recognizer here. PocketSphinx is recommended for English la
 
 ![Preferences](img/prefs.PNG)
 
-Create a [pose library](https://docs.blender.org/manual/en/dev/rigging/armatures/properties/pose_library.html) with the mouth shapes described in the Rhubarb Lip Sync documentation. You can name your poses whatever you like.
+Create a [pose library](https://docs.blender.org/manual/en/dev/animation/armatures/properties/pose_library.html) with the mouth shapes described in the Rhubarb Lip Sync documentation. You can name your poses whatever you like.
 
 ![Pose library](img/poselib.PNG)
 
