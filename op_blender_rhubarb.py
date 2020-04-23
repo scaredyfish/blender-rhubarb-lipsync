@@ -26,8 +26,10 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
 
     def modal(self, context, event):
         try:
-            (stdout, stderr) = self.rhubarb.communicate(timeout=1)
+            (stdout, stderr) = self.rhubarb.communicate(timeout=0.1)
         
+            print("Yes")
+
             try:
                 result = json.loads(stderr)
                 if result['type'] == 'progress':
@@ -38,6 +40,8 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                     self.report(type={'ERROR'}, message=result['reason'])
                     return {'CANCELLED'}
 
+            except TimeoutError:
+                print("Timeout")
             except ValueError:
                 pass
             except TypeError:
@@ -50,7 +54,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
             if self.rhubarb.returncode is not None:
                 wm = context.window_manager
                 wm.event_timer_remove(self._timer)
-     
+
                 results = json.loads(stdout)
                 fps = context.scene.render.fps
                 lib = context.object.pose_library
@@ -113,14 +117,18 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
         recognizer = bpy.path.abspath(addon_prefs.recognizer)
         executable = bpy.path.abspath(addon_prefs.executable_path)
         
-        command = [executable, "-f", "json", "--machineReadable", "--extendedShapes", "GHX", "-r", recognizer, inputfile]
+        command = executable + " -f json --machineReadable --extendedShapes GHX -r " + recognizer + " " + inputfile
         
         if dialogfile:
-            command.append("--dialogFile")
-            command.append(dialogfile )
+            command = command + " --dialogFile " + dialogfile
         
+        print(command)
+
         self.rhubarb = subprocess.Popen(command,
-                                        stdout=subprocess.PIPE, universal_newlines=True)
+                                        shell=True,
+                                        stdout=subprocess.PIPE, 
+                                        stderr=subprocess.STDOUT, 
+                                        universal_newlines=True)
 
         wm = context.window_manager
         self._timer = wm.event_timer_add(2, window=context.window)
