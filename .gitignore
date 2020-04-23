@@ -4,3 +4,5 @@ __pycache__
 release/
 copyfiles.bat
 bin/
+bin
+dist/
