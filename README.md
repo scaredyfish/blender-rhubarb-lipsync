@@ -1,8 +1,10 @@
 # Blender Rhubarb Lip Sync
 
-Blender Rhubarb Lipsync is an addon for [Blender](http://blender.org) integrating [Rhubarb Lip Sync](https://github.com/DanielSWolf/rhubarb-lip-sync) to automatically generate mouth-shape keyframes from a pose library.
+[Rhubarb Lip Sync](https://github.com/DanielSWolf/rhubarb-lip-sync) is a command-line tool created by Daniel S. Wolf that automatically creates mouth animation from voice recordings. You can use it for characters in computer games, in animated cartoons, or in any other project that requires animating mouths based on existing recordings.
 
-Rhubarb Lip Sync is a command-line tool that automatically creates mouth animation from voice recordings. You can use it for characters in computer games, in animated cartoons, or in any other project that requires animating mouths based on existing recordings.
+Blender Rhubarb Lipsync is an addon for [Blender](http://blender.org) that integrates Rhubarb Lip Sync and uses it to generate mouth-shape keyframes from a pose library.
+
+For support using this addon in Blender, please report an issue at https://github.com/scaredyfish/blender-rhubarb-lipsync/issues 
 
 ## Example output
 
@@ -20,9 +22,9 @@ https://youtu.be/xfI94VIX6BA
 
 Download a release from https://github.com/scaredyfish/blender-rhubarb-lipsync/releases
 
-_Use version 1.0.5 for Blender 2.79, version 2.0 onwards supports only Blender 2.80._
+_Use version 1.0.5 for Blender 2.79, version 2.0 onwards supports only Blender 2.80 and above._
 
-First, set the path to the Rhubarb Lipsync executable in user preferences (download from [https://github.com/DanielSWolf/rhubarb-lip-sync](https://github.com/DanielSWolf/rhubarb-lip-sync))
+Blender Rhubarb Lipsync includes the Rhubarb Lip Sync executable, but if you want to use a different executable, you can choose it in user preferences.
 
 You can also set the recognizer here. PocketSphinx is recommended for English language, phonetic may give better results for other languages.
 
@@ -37,8 +39,8 @@ Select your sound file, and dialog file (optional), and the start frame where yo
 
 ![Options panel](img/panel.PNG)
 
-In pose mode, select the bones you want to keyframe, then click the Rhubarb Lip Sync button and wait for the process to complete. There is no progress indicator yet, but your keyframes will appear when the process is complete.
+In **pose mode**, select the bones you want to keyframe, then click the Rhubarb Lip Sync button and wait for the process to complete. The mouse cursor will change to a progress indicator, and your keyframes will appear when the process is complete.
 
 ## Troubleshooting
 
-In the event of problems, you can use the system console (Window->Toggle System Console on Windows, or start Blender from a command line on Mac/Linux) to get more info on progress and error messages.
+In the event of problems, you can use the system console (Window->Toggle System Console on Windows, or start Blender from a command line on Mac/Linux) to get more info on progress and error messages. When reporting an issue, please include any errors reported here.
