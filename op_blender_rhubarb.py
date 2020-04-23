@@ -25,6 +25,9 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
             context.object.pose_library.mouth_shapes.sound_file
 
     def modal(self, context, event):
+        wm = context.window_manager
+        wm.progress_update(50)
+
         try:
             (stdout, stderr) = self.rhubarb.communicate(timeout=1)
         
@@ -48,9 +51,8 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
             self.rhubarb.poll()
 
             if self.rhubarb.returncode is not None:
-                wm = context.window_manager
                 wm.event_timer_remove(self._timer)
-     
+    
                 results = json.loads(stdout)
                 fps = context.scene.render.fps
                 lib = context.object.pose_library
@@ -80,7 +82,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
 
                     prev_pose = pose_index
                     last_frame = frame_num
-
+                    wm.progress_end()
                 return {'FINISHED'}
 
             return {'PASS_THROUGH'}
@@ -89,10 +91,12 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
         except json.decoder.JSONDecodeError:
             print(stdout)
             print("Error!!!")
+            wm.progress_end()
             return {'CANCELLED'}
         except Exception as ex:
             template = "An exception of type {0} occurred. Arguments:\n{1!r}"
             print(template.format(type(ex).__name__, ex.args))
+            wm.progress_end()
             return {'CANCELLED'}
 
     def set_keyframes(self, context, frame):
@@ -126,6 +130,8 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
         self._timer = wm.event_timer_add(2, window=context.window)
 
         wm.modal_handler_add(self)
+
+        wm.progress_begin(0, 100)
 
         return {'RUNNING_MODAL'}
 
