@@ -9,6 +9,7 @@ import subprocess
 from threading  import Thread
 from queue import Queue, Empty
 import json
+import os
 
 class RhubarbLipsyncOperator(bpy.types.Operator):
     """Run Rhubarb lipsync"""
@@ -117,6 +118,9 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
         recognizer = bpy.path.abspath(addon_prefs.recognizer)
         executable = bpy.path.abspath(addon_prefs.executable_path)
         
+        # This is ugly, but Blender unpacks the zip without execute permission
+        os.chmod(executable, 0o744)
+
         command = [executable, "-f", "json", "--machineReadable", "--extendedShapes", "GHX", "-r", recognizer, inputfile]
         
         if dialogfile:
