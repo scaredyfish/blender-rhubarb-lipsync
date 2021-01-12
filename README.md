@@ -18,11 +18,17 @@ and here's a tutorial video from Studio YogYog
 
 https://youtu.be/xfI94VIX6BA
 
-## Usage
+## Installation
 
 Download a release from https://github.com/scaredyfish/blender-rhubarb-lipsync/releases
 
 _Use version 1.0.5 for Blender 2.79, version 2.0 onwards supports only Blender 2.80 and above._
+
+Do **not** unzip the file.
+
+In Blender, open Blender Preferences ``Edit -> Preferences`` select ``Add-ons`` and choose ``Install...``. In the file dialog, select the ``.ZIP`` file.
+
+## Usage
 
 Blender Rhubarb Lipsync includes the Rhubarb Lip Sync executable, but if you want to use a different executable, you can choose it in user preferences.
 
