@@ -26,7 +26,7 @@ _Use version 1.0.5 for Blender 2.79, version 2.0 onwards supports only Blender 2
 
 Do **not** unzip the file.
 
-In Blender, open Blender Preferences ``Edit -> Preferences`` select ``Add-ons`` and choose ``Install...``. In the file dialog, select the ``.zip`` file. Once installed, enable the add-on with the checkmark.
+In Blender, open Blender Preferences ``Edit -> Preferences`` select ``Add-ons`` and choose ``Install...``. In the file dialog, select the ``.zip`` file. Once installed, enable the add-on with the checkbox.
 
 ## Usage
 
