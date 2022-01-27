@@ -20,7 +20,7 @@ https://youtu.be/xfI94VIX6BA
 
 ## Installation
 
-Download a release from https://github.com/scaredyfish/blender-rhubarb-lipsync/releases
+Download a release from https://github.com/scaredyfish/blender-rhubarb-lipsync/releases. If you download or clone the repository, the Rhubarb Lip Sync executable and data files will be missing - they can be downloaded separately from the [Rhubarb Lip Sync repository](https://github.com/DanielSWolf/rhubarb-lip-sync/releases), and set up as described below under Usage.
 
 _Use version 1.0.5 for Blender 2.79, version 2.0 onwards supports only Blender 2.80 and above._
 
