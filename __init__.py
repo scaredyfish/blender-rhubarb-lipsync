@@ -1,23 +1,24 @@
-__version__ = '3.0.1'
+__version__ = "3.0.2"
 
 bl_info = {
-    'name': 'Rhubarb Lipsync',
-    'author': 'Addon by Andrew Charlton, includes Rhubarb Lip Sync by Daniel S. Wolf',
-    'version': (3, 0, 1),
-    'blender': (2, 80, 0),
-    'location': 'Properties > Armature',
-    'description': 'Integrate Rhubarb Lipsync into Blender',
-    'wiki_url': 'https://github.com/adcharlton/blender-rhubarb-lipsync',
-    'tracker_url': 'https://github.com/adcharlton/blender-rhubarb-lipsync/issues',
-    'support': 'COMMUNITY',
-    'category': 'Animation',
+    "name": "Rhubarb Lipsync-DEV",
+    "author": "Customized by Nick Alberelli, based on: Addon by Andrew Charlton, includes Rhubarb Lip Sync by Daniel S. Wolf",
+    "version": (3, 0, 2),
+    "blender": (2, 83, 0),
+    "location": "VIEW3D > Sidebar > AI Lipsync",
+    "description": "Integrate Rhubarb Lipsync into Tiny Media Blender Workflow",
+    "wiki_url": "https://github.com/adcharlton/blender-rhubarb-lipsync",
+    "tracker_url": "https://github.com/adcharlton/blender-rhubarb-lipsync/issues",
+    "support": "COMMUNITY",
+    "category": "Animation",
+    "warning": "This addon is not ready to be used by anyone.",
 }
 
 
-if 'bpy' in locals():
+if "bpy" in locals():
     import importlib
 
-    if 'op_blender_rhubarb' in locals():
+    if "op_blender_rhubarb" in locals():
         importlib.reload(op_blender_rhubarb)
         importlib.reload(pnl_blender_rhubarb)
         importlib.reload(prefs_blender_rhubarb)
