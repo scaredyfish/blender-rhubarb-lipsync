@@ -1,3 +1,4 @@
+from distutils.util import execute
 import enum
 from operator import index
 import bpy
@@ -9,7 +10,7 @@ import io
 import sys
 import select
 import subprocess
-from threading import Thread
+from threading import Thread, local
 from queue import Queue, Empty
 import json
 import os
@@ -27,6 +28,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
     def modal(self, context, event):
         wm = context.window_manager
         wm.progress_update(50)
+        user_input = bpy.context.object.rhubarb.user_path
 
         try:
             (stdout, stderr) = self.rhubarb.communicate(timeout=1)
@@ -55,22 +57,23 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                 results = json.loads(stdout)
                 fps = context.scene.render.fps
                 lib = context.object
+                obj = bpy.context.object
                 last_frame = 0
                 prev_pose = 0
-
+                obj_path = bpy.data.scenes["Scene"].obj_selection
+                bone = bpy.data.scenes["Scene"].bone_selection
+                user_data_path = bpy.context.object.rhubarb.get("user_path")
+                bone_path = obj_path.pose.bones["{0}".format(bone)]
+                path = bone_path
                 for cue in results["mouthCues"]:
                     frame_num = round(cue["start"] * fps) + lib.rhubarb.start_frame
-
-                    # add hold key if time since last key is large
                     if frame_num - last_frame > self.hold_frame_threshold:
                         print(
                             "hold frame: {0}".format(
                                 frame_num - self.hold_frame_threshold
                             )
                         )
-                        bpy.context.object.pose.bones["PoseData"][
-                            "A. Mouth"
-                        ] = prev_pose
+                        path["{0}".format(user_data_path)] = prev_pose
                         self.set_keyframes(
                             context, frame_num - self.hold_frame_threshold
                         )
@@ -87,9 +90,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                     else:
                         pose_index = 0
 
-                    bpy.context.object.pose.bones["PoseData"][
-                        "A. Mouth"
-                    ] = pose_index  # CHANGE THIS PATH TO BE USER EDITABLE
+                    path["{0}".format(user_data_path)] = pose_index
                     self.set_keyframes(context, frame_num)
 
                     prev_pose = pose_index
@@ -113,8 +114,13 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
             return {"CANCELLED"}
 
     def set_keyframes(self, context, frame):
-        bpy.context.object.pose.bones["PoseData"].keyframe_insert(
-            data_path='["A. Mouth"]',
+        obj_path = bpy.data.scenes["Scene"].obj_selection
+        bone = bpy.data.scenes["Scene"].bone_selection
+        user_data_path = bpy.context.object.rhubarb.get("user_path")
+        bone_path = obj_path.pose.bones["{0}".format(bone)]
+        path = bone_path
+        path.keyframe_insert(
+            data_path='["{0}"]'.format(user_data_path),
             frame=frame,  # CHANGE THIS PATH TO BE USER EDITABLE
         )
         bpy.context.object.animation_data.action.fcurves[-1].keyframe_points[
@@ -180,7 +186,7 @@ class StoreMouthValues(bpy.types.Operator):
 
     bl_idname = "object.rhubarb_lipsync_storemouths"
     bl_label = "Store Rhubarb Mouths"
-    """Save mouth 'definitions' for rhubarb lipsync"""
+    """For testing purposes. Save mouth 'definitions' for rhubarb lipsync"""
 
     def execute(self, context):
         obj = bpy.context.object
@@ -205,7 +211,7 @@ class DefMouthValues(bpy.types.Operator):
 
     bl_idname = "object.rhubarb_lipsync_defemouths"
     bl_label = "Define Rhubarb Mouths"
-    """Load saved mouth 'definitions' from rhubarb lipsync"""
+    """For Testing purposes. Load saved mouth 'definitions' from rhubarb lipsync"""
 
     def execute(self, context):
         obj = bpy.context.object
