@@ -1,3 +1,8 @@
+# This is an UNSTABLE fork of "Blender Rhubarb Lip Sync". Find [the original repo here](https://github.com/scaredyfish/blender-rhubarb-lipsync)
+
+
+---------------------------------------
+
 # Blender Rhubarb Lip Sync
 
 [Rhubarb Lip Sync](https://github.com/DanielSWolf/rhubarb-lip-sync) is a command-line tool created by Daniel S. Wolf that automatically creates mouth animation from voice recordings. You can use it for characters in computer games, in animated cartoons, or in any other project that requires animating mouths based on existing recordings.
