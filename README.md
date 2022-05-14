@@ -6,7 +6,8 @@
 # Pre-Release Usage
 
 1. Install [latest release ](https://github.com/NickTiny/blender-rhubarb-lipsync/releases/download/v4.0.0/blender-rhubarb-lipsync.zip)
-2. Set path to rhubarb executable: avaliable for download [here](https://github.com/DanielSWolf/rhubarb-lip-sync/releases)
+2. Download and unzip [latest Rhubarb executable](https://github.com/DanielSWolf/rhubarb-lip-sync/releases)
+4. Set path in addon prefrences to rhubarb executable 
 
 ![image](https://user-images.githubusercontent.com/86638335/168449671-e38c26f1-4823-44ad-8898-d1b81b03e7d3.png)
 
@@ -19,8 +20,12 @@
 
 7. Set Custom Mouth Integers
 8. Get [Audio-Sample-lipsync.zip](https://github.com/NickTiny/blender-rhubarb-lipsync/files/8693969/Audio-Sample-lipsync.zip) file here
-9. Hit "RHubarb Lipsync" to run operation
+9. Hit "Rhubarb Lipsync" to run operation
 
 
 
 ![image](https://user-images.githubusercontent.com/86638335/168449764-c8205678-d1ca-4b7d-9528-0ac6fda29f21.png)
+
+
+# Troubleshooting
+This software is pre-release and provided without support. In the event of problems, you can use the system console (Window->Toggle System Console on Windows, or start Blender from a command line on Mac/Linux) to get more info on progress and error messages. When reporting an issue, please include any errors reported here.
