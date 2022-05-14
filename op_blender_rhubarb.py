@@ -60,7 +60,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                 obj = bpy.context.object
                 last_frame = 0
                 prev_pose = 0
-                obj_path = bpy.data.scenes["Scene"].obj_selection
+                obj_path = bpy.context.object
                 bone = bpy.data.scenes["Scene"].bone_selection
                 user_data_path = bpy.context.object.rhubarb.get("user_path")
                 bone_path = obj_path.pose.bones["{0}".format(bone)]
@@ -114,7 +114,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
             return {"CANCELLED"}
 
     def set_keyframes(self, context, frame):
-        obj_path = bpy.data.scenes["Scene"].obj_selection
+        obj_path = bpy.context.object
         bone = bpy.data.scenes["Scene"].bone_selection
         user_data_path = bpy.context.object.rhubarb.get("user_path")
         bone_path = obj_path.pose.bones["{0}".format(bone)]

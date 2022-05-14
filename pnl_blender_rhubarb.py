@@ -4,8 +4,6 @@ from . import op_blender_rhubarb
 
 bpy.types.Scene.target = bpy.props.PointerProperty(type=bpy.types.Object)
 
-list_of_props = []
-
 
 class RhubarbLipsyncPanel(bpy.types.Panel):
     bl_idname = "DATA_PT_rhubarb_lipsync"
@@ -16,30 +14,24 @@ class RhubarbLipsyncPanel(bpy.types.Panel):
     bl_context = "posemode"
 
     # https://gist.github.com/daylanKifky/252baea63eb0c39858e3e9b57f1af167
-    bpy.types.Scene.obj_selection = bpy.props.PointerProperty(type=bpy.types.Object)
+    # bpy.types.Scene.obj_selection = bpy.context.object
     bpy.types.Scene.bone_selection = bpy.props.StringProperty()
 
     def draw(self, context):
         sc = bpy.data.scenes["Scene"]
-        self.layout.prop(sc, "obj_selection", text="Object")
-        obj_path = bpy.data.scenes["Scene"].obj_selection
-        arm_path = obj_path.pose.bones  # ["{0}".format(bone)]
-        list_of_props.clear()
-        if sc.obj_selection:
-            if sc.obj_selection.type == "ARMATURE":
-                self.layout.prop_search(
-                    sc, "bone_selection", sc.obj_selection.data, "bones", text="Bone"
-                )
-
+        self.layout.prop_search(
+            sc, "bone_selection", sc.obj_selection.data, "bones", text="Bone"
+        )
         layout = self.layout
         prop = context.object.rhubarb
         row = layout.row()
-        row.prop(prop, "user_path", text="Prop-Name")
+        row.label(text="Property Name:")
+        sub = row.row()
+        sub.enabled = bpy.data.scenes["Scene"].bone_selection is not ""
+        sub.prop(prop, "user_path", text="")
         row = layout.row()
         row = layout.row()
-        row.menu(
-            menu="OBJECT_MT_select_test", text_ctxt="test1", text="Select a Property"
-        )
+        # row.menu(menu="OBJECT_MT_select_test", text="Select a Property")
 
         col = layout.column()
         col.prop(prop, "mouth_a", text="Mouth A (MBP)")
@@ -62,14 +54,16 @@ class RhubarbLipsyncPanel(bpy.types.Panel):
         row.prop(prop, "start_frame", text="Start frame")
 
         row = layout.row()
+        sub = row.row()
+        sub.enabled = (
+            bpy.data.scenes["Scene"].bone_selection is not ""
+            and bpy.data.objects["Josephine - Control"].rhubarb.user_path is not ""
+        )
+        sub.operator(operator="object.rhubarb_lipsync")
 
-        if not (context.preferences.addons[__package__].preferences.executable_path):
-            row.label(
-                text="Please set rhubarb executable location in addon preferences"
-            )
-            row = layout.row()
-
-        row.operator(operator="object.rhubarb_lipsync")
+    @classmethod
+    def poll(cls, context):
+        return bpy.data.scenes["Scene"].bone_selection is not None
 
 
 # Panel now stores all values in the same property group but it is not in pose mode Next step is to clean up the operator.
@@ -87,7 +81,8 @@ class MouthShapesProperty(bpy.types.PropertyGroup):
     mouth_x: bpy.props.IntProperty(name="mouthx", default=9)
 
     user_path: bpy.props.StringProperty(
-        name="user_path", description="Enter the name of an int property"
+        name="Enter Custom Property Name",
+        description="Enter the name of an int property exactly as it appears in the Custom Properties of the selected Bone",
     )
     sound_file: bpy.props.StringProperty(name="sound_file", subtype="FILE_PATH")
     dialog_file: bpy.props.StringProperty(name="dialog_file", subtype="FILE_PATH")
@@ -107,7 +102,7 @@ class BasicMenu(bpy.types.Menu):
         # Can I make these definitions global?
         layout = self.layout
 
-        obj_path = bpy.data.scenes["Scene"].obj_selection
+        obj_path = bpy.context.object
         bone = bpy.data.scenes["Scene"].bone
         bone_path = obj_path.pose.bones["{0}".format(bone)]
         sc = bpy.data.scenes["Scene"]
