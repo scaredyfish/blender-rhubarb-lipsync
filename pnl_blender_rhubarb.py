@@ -2,10 +2,11 @@ import bpy
 from bpy_extras.io_utils import ImportHelper
 from . import op_blender_rhubarb
 
-bpy.types.Scene.target = bpy.props.PointerProperty(type=bpy.types.Object)
+# bpy.types.Scene.target = bpy.props.PointerProperty(type=bpy.types.Object)
 
 
 class RhubarbLipsyncPanel(bpy.types.Panel):
+    """Panel to control options of rhubarb operator"""
     bl_idname = "DATA_PT_rhubarb_lipsync"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
@@ -14,7 +15,7 @@ class RhubarbLipsyncPanel(bpy.types.Panel):
     bl_context = "posemode"
 
     # https://gist.github.com/daylanKifky/252baea63eb0c39858e3e9b57f1af167
-    # bpy.types.Scene.obj_selection = bpy.context.object
+    bpy.types.Scene.obj_selection = bpy.props.PointerProperty(type=bpy.types.Object)
     bpy.types.Scene.bone_selection = bpy.props.StringProperty()
 
     def draw(self, context):
@@ -70,6 +71,7 @@ class RhubarbLipsyncPanel(bpy.types.Panel):
 
 
 class MouthShapesProperty(bpy.types.PropertyGroup):
+    '''definitions for rhubarb properties'''
     mouth_a: bpy.props.IntProperty(name="moutha", default=1)
     mouth_b: bpy.props.IntProperty(name="mouthb", default=2)
     mouth_c: bpy.props.IntProperty(name="mouthc", default=3)
