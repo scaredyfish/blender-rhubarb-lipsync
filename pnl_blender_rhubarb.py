@@ -7,6 +7,7 @@ from . import op_blender_rhubarb
 
 class RhubarbLipsyncPanel(bpy.types.Panel):
     """Panel to control options of rhubarb operator"""
+
     bl_idname = "DATA_PT_rhubarb_lipsync"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
@@ -71,7 +72,8 @@ class RhubarbLipsyncPanel(bpy.types.Panel):
 
 
 class MouthShapesProperty(bpy.types.PropertyGroup):
-    '''definitions for rhubarb properties'''
+    """definitions for rhubarb properties"""
+
     mouth_a: bpy.props.IntProperty(name="moutha", default=1)
     mouth_b: bpy.props.IntProperty(name="mouthb", default=2)
     mouth_c: bpy.props.IntProperty(name="mouthc", default=3)
@@ -116,16 +118,13 @@ class BasicMenu(bpy.types.Menu):
         ).action = "TOGGLE"
         layout.operator("object.select_all", text="Inverse").action = "INVERT"
         layout.operator("object.select_random", text="Random")
-
-        print("draw menu active2")
         bone_path = arm_path["{0}".format(sc.bone)]
-        """How to print all props on a bone https://blenderartists.org/t/is-it-possible-to-set-all-the-custom-properties-of-a-bone-to-0/545554/3"""
+        """TESTING How to print all props on a bone https://blenderartists.org/t/is-it-possible-to-set-all-the-custom-properties-of-a-bone-to-0/545554/3
         for x, value in bone_path.items():
             # if type(value) is int: #Off for test
             print('pose.bones["%s"]["%s"] =  %.1f' % (bone_path.name, x, value))
             # rhubarb.aval_props = +"{0}".format(x) #NFG
-        print("list below")
-        print(list_of_props)
+        print("list below")"""
 
 
 def register():
