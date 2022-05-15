@@ -24,7 +24,7 @@
 
 
 
-![image](https://user-images.githubusercontent.com/86638335/168449764-c8205678-d1ca-4b7d-9528-0ac6fda29f21.png)
+![image](https://user-images.githubusercontent.com/86638335/168452019-563c8a18-1994-4e37-a12e-cc90912ce74a.png)
 
 
 # Troubleshooting
