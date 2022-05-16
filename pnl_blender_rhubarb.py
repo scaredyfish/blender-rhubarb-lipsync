@@ -20,6 +20,7 @@ class RhubarbLipsyncPanel(bpy.types.Panel):
     bpy.types.Scene.bone_selection = bpy.props.StringProperty()
 
     def draw(self, context):
+
         sc = bpy.data.scenes["Scene"]
         self.layout.prop_search(
             sc, "bone_selection", sc.obj_selection.data, "bones", text="Bone"
@@ -33,7 +34,7 @@ class RhubarbLipsyncPanel(bpy.types.Panel):
         sub.prop(prop, "user_path", text="")
         row = layout.row()
         row = layout.row()
-        # row.menu(menu="OBJECT_MT_select_test", text="Select a Property")
+        row.menu(menu="OBJECT_MT_select_test", text="Select a Property")
 
         col = layout.column()
         col.prop(prop, "mouth_a", text="Mouth A (MBP)")
@@ -103,28 +104,27 @@ class BasicMenu(bpy.types.Menu):
     bl_label = "Select"
 
     def draw(self, context):
+        print("draw menu active")
         # Can I make these definitions global?
         layout = self.layout
-
         obj_path = bpy.context.object
-        bone = bpy.data.scenes["Scene"].bone
-        bone_path = obj_path.pose.bones["{0}".format(bone)]
         sc = bpy.data.scenes["Scene"]
-        arm_path = obj_path.pose.bones
-        rhubarb = bpy.context.object.rhubarb
+        bone = sc.bone_selection
+        bone_path = obj_path.pose.bones["{0}".format(bone)]
         print("draw menu active")
         layout.operator(
             "object.select_all", text="Select/Deselect All"
         ).action = "TOGGLE"
         layout.operator("object.select_all", text="Inverse").action = "INVERT"
         layout.operator("object.select_random", text="Random")
-        bone_path = arm_path["{0}".format(sc.bone)]
-        """TESTING How to print all props on a bone https://blenderartists.org/t/is-it-possible-to-set-all-the-custom-properties-of-a-bone-to-0/545554/3
-        for x, value in bone_path.items():
-            # if type(value) is int: #Off for test
-            print('pose.bones["%s"]["%s"] =  %.1f' % (bone_path.name, x, value))
-            # rhubarb.aval_props = +"{0}".format(x) #NFG
-        print("list below")"""
+        print("test-draw-complete")
+
+        # TESTING How to print all props on a bone https://blenderartists.org/t/is-it-possible-to-set-all-the-custom-properties-of-a-bone-to-0/545554/3
+        print("active-drawprops")
+        for y, _ in bone_path.items():
+            print(y)
+            self.layout.prop(bone_path, f'["{y}"]', text=f"{y}")
+        print("list below3")
 
 
 def register():
