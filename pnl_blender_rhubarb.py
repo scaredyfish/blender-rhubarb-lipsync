@@ -106,18 +106,10 @@ class BasicMenu(bpy.types.Menu):
     def draw(self, context):
         print("draw menu active")
         # Can I make these definitions global?
-        layout = self.layout
         obj_path = bpy.context.object
         sc = bpy.data.scenes["Scene"]
         bone = sc.bone_selection
         bone_path = obj_path.pose.bones["{0}".format(bone)]
-        print("draw menu active")
-        layout.operator(
-            "object.select_all", text="Select/Deselect All"
-        ).action = "TOGGLE"
-        layout.operator("object.select_all", text="Inverse").action = "INVERT"
-        layout.operator("object.select_random", text="Random")
-        print("test-draw-complete")
 
         # TESTING How to print all props on a bone https://blenderartists.org/t/is-it-possible-to-set-all-the-custom-properties-of-a-bone-to-0/545554/3
         print("active-drawprops")
