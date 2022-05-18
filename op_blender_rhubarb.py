@@ -28,7 +28,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
     def modal(self, context, event):
         wm = context.window_manager
         wm.progress_update(50)
-        user_input = bpy.context.object.rhubarb.user_path
+        user_input = context.object.rhubarb.presets
 
         try:
             (stdout, stderr) = self.rhubarb.communicate(timeout=1)
@@ -62,7 +62,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                 prev_pose = 0
                 obj_path = bpy.context.object
                 bone = bpy.data.scenes["Scene"].bone_selection
-                user_data_path = bpy.context.object.rhubarb.get("user_path")
+                user_data_path = context.object.rhubarb.presets
                 bone_path = obj_path.pose.bones["{0}".format(bone)]
                 path = bone_path
                 for cue in results["mouthCues"]:
@@ -87,6 +87,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                     mouth_shape = "mouth_" + cue["value"].lower()
                     if mouth_shape in context.object.rhubarb:
                         pose_index = context.object.rhubarb[mouth_shape]
+                        print(pose_index)
                     else:
                         pose_index = 0
 
@@ -114,9 +115,9 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
             return {"CANCELLED"}
 
     def set_keyframes(self, context, frame):
-        obj_path = bpy.context.object
+        obj_path = context.object
         bone = bpy.data.scenes["Scene"].bone_selection
-        user_data_path = bpy.context.object.rhubarb.get("user_path")
+        user_data_path = context.object.rhubarb.presets
         bone_path = obj_path.pose.bones["{0}".format(bone)]
         path = bone_path
         path.keyframe_insert(

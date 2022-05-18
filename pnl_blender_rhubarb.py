@@ -1,8 +1,93 @@
 import bpy
 from bpy_extras.io_utils import ImportHelper
 from . import op_blender_rhubarb
+import bpy, mathutils
 
-# bpy.types.Scene.target = bpy.props.PointerProperty(type=bpy.types.Object)
+bpr = bpy.props
+
+"""Below are definitions for enumurated list of properties. 
+List of properties will be used for fetching how many 
+custom properties exist on a bone or object."""
+
+data_for_enum = []
+
+
+def enum_items_generator(self, context):
+    enum_items = []
+    for e, d in enumerate(data_for_enum):
+        enum_items.append((d[0], d[0], d[0], e))
+        # as you see for each tuple in my list I use [0] item to generate enum value/name and [1] item for description + integer from enumerate for id
+    return enum_items
+
+
+def report(self, message):  # Just to report errors
+    self.report({"ERROR"}, message)
+    return {"CANCELLED"}
+
+
+class EEA_OT_Enum_Add(bpy.types.Operator):
+    """Operator for adding items to the enum prop"""
+
+    bl_idname = "eea.eea_enum_add"
+    bl_label = "EEA_OT_Enum_Add"
+    bl_description = "Add new enum item"
+
+    new_name: bpy.props.StringProperty(default="Preset name", name="Preset name ")
+
+    def execute(self, context):
+        obj_path = bpy.context.object
+        sc = bpy.data.scenes["Scene"]
+        bone = sc.bone_selection
+        bone_path = obj_path.pose.bones["{0}".format(bone)]
+
+        global data_for_enum
+
+        eea = context.object.rhubarb
+        aob = context.view_layer.objects.active
+
+        if aob == None:  # For case when there is no active object
+            return report(self, "No active object selected!!!")
+
+        # TESTING How to print all props on a bone https://blenderartists.org/t/is-it-possible-to-set-all-the-custom-properties-of-a-bone-to-0/545554/3
+        data_for_enum.clear()
+        for prop_name, _ in bone_path.items():
+            # self.layout.prop(bone_path, f'["{y}"]', text=f"{y}")
+            data_for_enum.append(
+                (prop_name, prop_name, prop_name)
+            )  # here I append to data_for_enum new tuple
+        print("list below3")
+
+        return {"FINISHED"}
+
+
+class EEA_OT_Enum_Remove(bpy.types.Operator):
+    """Operator for removing items to the enum prop"""
+
+    bl_idname = "eea.eea_enum_remove"
+    bl_label = "EEA_OT_Enum_Remove"
+    bl_description = "Remove current enum item"
+
+    def execute(self, context):
+        global data_for_enum
+
+        eea = context.object.rhubarb
+
+        if len(data_for_enum) != 0:
+            did = [x[0] for x in data_for_enum].index(
+                eea.presets
+            )  # I search for index of current enum in my list [0] items of my tuples
+            data_for_enum.pop(did)  # I pop out item with this index from my list
+
+            # at this moment my list is already changed and enum already regenereted
+
+            if (
+                did > len(data_for_enum) - 1 and data_for_enum != []
+            ):  # here I set enum to value of my list last item in case when I remove last enum item, othervise active enum become empty :)
+                eea.presets = data_for_enum[len(data_for_enum) - 1][0]
+
+        else:
+            return report(self, "No more items to remove")
+        return {"FINISHED"}
 
 
 class RhubarbLipsyncPanel(bpy.types.Panel):
@@ -15,27 +100,40 @@ class RhubarbLipsyncPanel(bpy.types.Panel):
     bl_label = "Controller AI Lipsync"
     bl_context = "posemode"
 
-    # https://gist.github.com/daylanKifky/252baea63eb0c39858e3e9b57f1af167
     bpy.types.Scene.obj_selection = bpy.props.PointerProperty(type=bpy.types.Object)
     bpy.types.Scene.bone_selection = bpy.props.StringProperty()
 
     def draw(self, context):
+        # Bone Selection Menu
 
         sc = bpy.data.scenes["Scene"]
+        obj = bpy.context.object
+        self.layout.prop(sc, "obj_selection", text="")
+
         self.layout.prop_search(
             sc, "bone_selection", sc.obj_selection.data, "bones", text="Bone"
         )
         layout = self.layout
         prop = context.object.rhubarb
+
+        # Manually enter prop name as string
         row = layout.row()
         row.label(text="Property Name:")
+
         sub = row.row()
         sub.enabled = bpy.data.scenes["Scene"].bone_selection is not ""
         sub.prop(prop, "user_path", text="")
-        row = layout.row()
-        row = layout.row()
-        row.menu(menu="OBJECT_MT_select_test", text="Select a Property")
 
+        # Testing Enum Dropdown Menu
+        col = layout.column(align=True)
+        eea = context.object.rhubarb
+        row = layout.row()
+
+        row = col.row(align=True)
+        row.operator("eea.eea_enum_add", text="Load Properties")
+        row.prop(eea, "presets", text="")
+
+        # Mouth Shape Definitions
         col = layout.column()
         col.prop(prop, "mouth_a", text="Mouth A (MBP)")
         col.prop(prop, "mouth_b", text="Mouth B (EE/etc)")
@@ -58,10 +156,7 @@ class RhubarbLipsyncPanel(bpy.types.Panel):
 
         row = layout.row()
         sub = row.row()
-        sub.enabled = (
-            bpy.data.scenes["Scene"].bone_selection is not ""
-            and bpy.data.objects["Josephine - Control"].rhubarb.user_path is not ""
-        )
+        sub.enabled = bpy.data.scenes["Scene"].bone_selection is not ""
         sub.operator(operator="object.rhubarb_lipsync")
 
     @classmethod
@@ -95,6 +190,7 @@ class MouthShapesProperty(bpy.types.PropertyGroup):
     default_mouths: bpy.props.IntVectorProperty(name="default_mouths", size=9)
     aval_props: bpy.props.StringProperty(name="aval_prop_names")
     start_frame: bpy.props.IntProperty(name="start_frame")
+    presets: bpy.props.EnumProperty(items=enum_items_generator, name="Position Preset")
 
 
 class BasicMenu(bpy.types.Menu):
@@ -119,16 +215,21 @@ class BasicMenu(bpy.types.Menu):
         print("list below3")
 
 
-def register():
-    bpy.utils.register_class(MouthShapesProperty)
-    bpy.utils.register_class(RhubarbLipsyncPanel)
-    bpy.utils.register_class(BasicMenu)
+ctr = [
+    EEA_OT_Enum_Add,
+    EEA_OT_Enum_Remove,
+    MouthShapesProperty,
+    RhubarbLipsyncPanel,
+    BasicMenu,
+]
 
-    bpy.types.Action.mouth_shapes = bpy.props.PointerProperty(type=MouthShapesProperty)
+
+def register():
+    for cls in ctr:
+        bpy.utils.register_class(cls)
     bpy.types.Object.rhubarb = bpy.props.PointerProperty(type=MouthShapesProperty)
 
 
 def unregister():
-    bpy.utils.unregister_class(MouthShapesProperty)
-    bpy.utils.unregister_class(RhubarbLipsyncPanel)
-    bpy.utils.unregister_class(BasicMenu)
+    for cls in reversed(ctr):
+        bpy.utils.unregister_class(cls)
