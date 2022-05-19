@@ -57,7 +57,6 @@ class pnl_blender_rhubarb(bpy.types.Panel):
     bl_region_type = "UI"
     bl_category = "AI Lipsync"
     bl_label = "Controller AI Lipsync"
-    bl_context = "posemode"
 
     # Pointer definitions
     bpy.types.Scene.obj_selection = bpy.props.PointerProperty(type=bpy.types.Object)
@@ -132,12 +131,6 @@ class pgrp_blender_rhubarb(bpy.types.PropertyGroup):
     mouth_g: bpy.props.IntProperty(name="mouthg", default=7)
     mouth_h: bpy.props.IntProperty(name="mouthh", default=8)
     mouth_x: bpy.props.IntProperty(name="mouthx", default=9)
-
-    # delete this: path for tests
-    user_path: bpy.props.StringProperty(
-        name="Enter Custom Property Name",
-        description="Enter the name of an int property exactly as it appears in the Custom Properties of the selected Bone",
-    )
 
     # rhubarb executable dependcies
     sound_file: bpy.props.StringProperty(name="sound_file", subtype="FILE_PATH")

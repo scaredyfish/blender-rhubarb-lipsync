@@ -29,8 +29,6 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
 
         wm = context.window_manager
         wm.progress_update(50)
-        user_input = context.object.rhubarb.presets
-
         try:
             (stdout, stderr) = self.rhubarb.communicate(timeout=1)
 
@@ -119,7 +117,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
         bone_path = obj.pose.bones["{0}".format(bone)]
         bone_path.keyframe_insert(
             data_path='["{0}"]'.format(user_data_path),
-            frame=frame,  # CHANGE THIS PATH TO BE USER EDITABLE
+            frame=frame,
         )
         context.object.animation_data.action.fcurves[-1].keyframe_points[
             -1
