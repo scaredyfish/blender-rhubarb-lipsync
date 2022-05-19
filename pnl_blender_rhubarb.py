@@ -36,7 +36,14 @@ class enum_get_blender_rhubarb(bpy.types.Operator):
         sc = bpy.data.scenes["Scene"]
         obj = context.object
         bone = sc.bone_selection
-        bone_path = obj.pose.bones["{0}".format(bone)]
+        sc = bpy.data.scenes["Scene"]
+        obj = context.object
+        if sc.obj_selection:
+            if sc.obj_selection.type == "ARMATURE":
+                bone = sc.bone_selection
+                bone_path = obj.pose.bones["{0}".format(bone)]
+            else:
+                bone_path = obj
         eea = context.object.rhubarb
         aob = context.view_layer.objects.active
 
@@ -69,11 +76,14 @@ class pnl_blender_rhubarb(bpy.types.Panel):
         layout = self.layout
 
         # Bone Selection Menu
+        # https://gist.github.com/daylanKifky/252baea63eb0c39858e3e9b57f1af167
         layout.prop(sc, "obj_selection", text="")
 
-        layout.prop_search(
-            sc, "bone_selection", sc.obj_selection.data, "bones", text="Bone"
-        )
+        if sc.obj_selection:
+            if sc.obj_selection.type == "ARMATURE":
+                layout.prop_search(
+                    sc, "bone_selection", sc.obj_selection.data, "bones", text="Bone"
+                )
 
         # Dropdown of avaliable properties
         col = layout.column(align=True)
@@ -107,15 +117,7 @@ class pnl_blender_rhubarb(bpy.types.Panel):
 
         # Button to run rhubarb operator
         row = layout.row()
-        sub = row.row()
-        sub.enabled = sc.bone_selection != ""
-        sub.operator(operator="object.rhubarb_lipsync")
-
-    @classmethod
-    def poll(cls, context):
-        sc = bpy.data.scenes["Scene"]
-        # Controls if user can run op
-        return sc.bone_selection != None
+        row.operator(operator="object.rhubarb_lipsync")
 
 
 class pgrp_blender_rhubarb(bpy.types.PropertyGroup):

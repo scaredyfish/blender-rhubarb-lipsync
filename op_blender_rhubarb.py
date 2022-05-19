@@ -39,7 +39,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                     self.message = result["log"]["message"]
 
                 if result["type"] == "failure":
-                    self.report(type={"ERROR"}, message=result["reason"])
+                    self.report(type={"ERROR Type Failure"}, message=result["reason"])
                     return {"CANCELLED"}
 
             except ValueError:
@@ -58,9 +58,16 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                 obj = context.object
                 last_frame = 0
                 prev_pose = 0
-                bone = bpy.data.scenes["Scene"].bone_selection
+                sc = bpy.data.scenes["Scene"]
+
                 user_data_path = context.object.rhubarb.presets
-                bone_path = obj.pose.bones["{0}".format(bone)]
+
+                if sc.obj_selection.type == "ARMATURE":
+                    bone = sc.bone_selection
+                    bone_path = obj.pose.bones["{0}".format(bone)]
+                else:
+                    bone_path = obj
+
                 for cue in results["mouthCues"]:
                     frame_num = round(cue["start"] * fps) + obj.rhubarb.start_frame
                     if frame_num - last_frame > self.hold_frame_threshold:
@@ -86,6 +93,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                         print(pose_index)
                     else:
                         pose_index = 0
+                        print(str(pose_index) + "is zero")
 
                     bone_path["{0}".format(user_data_path)] = pose_index
                     self.set_keyframes(context, frame_num)
@@ -101,7 +109,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
             return {"PASS_THROUGH"}
         except json.decoder.JSONDecodeError:
             print(stdout)
-            print("Error!!!")
+            print("Error!!! Json Decoder")
             wm.progress_end()
             return {"CANCELLED"}
         except Exception as ex:
@@ -111,10 +119,15 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
             return {"CANCELLED"}
 
     def set_keyframes(self, context, frame):
+        sc = bpy.data.scenes["Scene"]
         obj = context.object
-        bone = bpy.data.scenes["Scene"].bone_selection
         user_data_path = context.object.rhubarb.presets
-        bone_path = obj.pose.bones["{0}".format(bone)]
+        if sc.obj_selection.type == "ARMATURE":
+            bone = sc.bone_selection
+            bone_path = obj.pose.bones["{0}".format(bone)]
+        else:
+            bone_path = obj
+
         bone_path.keyframe_insert(
             data_path='["{0}"]'.format(user_data_path),
             frame=frame,
