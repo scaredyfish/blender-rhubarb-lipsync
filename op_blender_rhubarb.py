@@ -26,9 +26,10 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
     hold_frame_threshold = 4
 
     def modal(self, context, event):
+
         wm = context.window_manager
         wm.progress_update(50)
-        user_input = bpy.context.object.rhubarb.user_path
+        user_input = context.object.rhubarb.presets
 
         try:
             (stdout, stderr) = self.rhubarb.communicate(timeout=1)
@@ -56,24 +57,21 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                 wm.event_timer_remove(self._timer)
                 results = json.loads(stdout)
                 fps = context.scene.render.fps
-                lib = context.object
-                obj = bpy.context.object
+                obj = context.object
                 last_frame = 0
                 prev_pose = 0
-                obj_path = bpy.context.object
                 bone = bpy.data.scenes["Scene"].bone_selection
-                user_data_path = bpy.context.object.rhubarb.get("user_path")
-                bone_path = obj_path.pose.bones["{0}".format(bone)]
-                path = bone_path
+                user_data_path = context.object.rhubarb.presets
+                bone_path = obj.pose.bones["{0}".format(bone)]
                 for cue in results["mouthCues"]:
-                    frame_num = round(cue["start"] * fps) + lib.rhubarb.start_frame
+                    frame_num = round(cue["start"] * fps) + obj.rhubarb.start_frame
                     if frame_num - last_frame > self.hold_frame_threshold:
                         print(
                             "hold frame: {0}".format(
                                 frame_num - self.hold_frame_threshold
                             )
                         )
-                        path["{0}".format(user_data_path)] = prev_pose
+                        bone_path["{0}".format(user_data_path)] = prev_pose
                         self.set_keyframes(
                             context, frame_num - self.hold_frame_threshold
                         )
@@ -87,10 +85,11 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                     mouth_shape = "mouth_" + cue["value"].lower()
                     if mouth_shape in context.object.rhubarb:
                         pose_index = context.object.rhubarb[mouth_shape]
+                        print(pose_index)
                     else:
                         pose_index = 0
 
-                    path["{0}".format(user_data_path)] = pose_index
+                    bone_path["{0}".format(user_data_path)] = pose_index
                     self.set_keyframes(context, frame_num)
 
                     prev_pose = pose_index
@@ -114,16 +113,15 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
             return {"CANCELLED"}
 
     def set_keyframes(self, context, frame):
-        obj_path = bpy.context.object
+        obj = context.object
         bone = bpy.data.scenes["Scene"].bone_selection
-        user_data_path = bpy.context.object.rhubarb.get("user_path")
-        bone_path = obj_path.pose.bones["{0}".format(bone)]
-        path = bone_path
-        path.keyframe_insert(
+        user_data_path = context.object.rhubarb.presets
+        bone_path = obj.pose.bones["{0}".format(bone)]
+        bone_path.keyframe_insert(
             data_path='["{0}"]'.format(user_data_path),
             frame=frame,  # CHANGE THIS PATH TO BE USER EDITABLE
         )
-        bpy.context.object.animation_data.action.fcurves[-1].keyframe_points[
+        context.object.animation_data.action.fcurves[-1].keyframe_points[
             -1
         ].interpolation = "CONSTANT"
 
@@ -173,7 +171,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
         return self.invoke(context, None)
 
     def finished(self, context):
-        bpy.context.scene.frame_set(bpy.context.scene.frame_current + 1)
+        context.scene.frame_set(context.scene.frame_current + 1)
         wm = context.window_manager
         wm.event_timer_remove(self._timer)
 
@@ -189,7 +187,7 @@ class StoreMouthValues(bpy.types.Operator):
     """For testing purposes. Save mouth 'definitions' for rhubarb lipsync"""
 
     def execute(self, context):
-        obj = bpy.context.object
+        obj = context.object
         save = obj.rhubarb.stored_mouths
         a = obj.rhubarb.mouth_a
         b = obj.rhubarb.mouth_b
@@ -214,7 +212,7 @@ class DefMouthValues(bpy.types.Operator):
     """For Testing purposes. Load saved mouth 'definitions' from rhubarb lipsync"""
 
     def execute(self, context):
-        obj = bpy.context.object
+        obj = context.object
         read = obj.rhubarb.stored_mouths
         obj.rhubarb.mouth_a = read[0]
         obj.rhubarb.mouth_b = read[1]

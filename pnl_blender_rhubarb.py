@@ -1,11 +1,55 @@
 import bpy
 from bpy_extras.io_utils import ImportHelper
 from . import op_blender_rhubarb
+import bpy, mathutils
 
-# bpy.types.Scene.target = bpy.props.PointerProperty(type=bpy.types.Object)
+"""Below are definitions for enumurated list of properties. 
+List of properties will be used for fetching how many 
+custom properties exist on a bone or object."""
+
+prop_list = []
 
 
-class RhubarbLipsyncPanel(bpy.types.Panel):
+def enum_items_generator(self, context):
+    enum_items = []
+    for e, d in enumerate(prop_list):
+        enum_items.append((d[0], d[0], d[0], e))
+    return enum_items
+
+
+def report(self, message):  # Just to report errors
+    self.report({"ERROR"}, message)
+    return {"CANCELLED"}
+
+
+class enum_get_blender_rhubarb(bpy.types.Operator):
+    """Operator for adding avaliable properties
+    from bone to enum list for panel."""
+
+    bl_idname = "rhubarb.enum_get"
+    bl_label = "List rhubarb destination properties"
+    bl_description = "Add new enum items to list for dropdown menu"
+
+    def execute(self, context):
+        # append bone properties to display in dropdown
+        global prop_list
+        sc = bpy.data.scenes["Scene"]
+        obj = context.object
+        bone = sc.bone_selection
+        bone_path = obj.pose.bones["{0}".format(bone)]
+        eea = context.object.rhubarb
+        aob = context.view_layer.objects.active
+
+        if aob == None:  # For case when there is no active object
+            return report(self, "No active object selected!!!")
+
+        prop_list.clear()
+        for prop_name, _ in bone_path.items():
+            prop_list.append((prop_name, prop_name, prop_name))
+        return {"FINISHED"}
+
+
+class pnl_blender_rhubarb(bpy.types.Panel):
     """Panel to control options of rhubarb operator"""
 
     bl_idname = "DATA_PT_rhubarb_lipsync"
@@ -15,26 +59,34 @@ class RhubarbLipsyncPanel(bpy.types.Panel):
     bl_label = "Controller AI Lipsync"
     bl_context = "posemode"
 
-    # https://gist.github.com/daylanKifky/252baea63eb0c39858e3e9b57f1af167
+    # Pointer definitions
     bpy.types.Scene.obj_selection = bpy.props.PointerProperty(type=bpy.types.Object)
     bpy.types.Scene.bone_selection = bpy.props.StringProperty()
 
     def draw(self, context):
         sc = bpy.data.scenes["Scene"]
-        self.layout.prop_search(
+        obj = context.object
+        prop = context.object.rhubarb
+        layout = self.layout
+
+        # Bone Selection Menu
+        layout.prop(sc, "obj_selection", text="")
+
+        layout.prop_search(
             sc, "bone_selection", sc.obj_selection.data, "bones", text="Bone"
         )
-        layout = self.layout
-        prop = context.object.rhubarb
-        row = layout.row()
-        row.label(text="Property Name:")
-        sub = row.row()
-        sub.enabled = bpy.data.scenes["Scene"].bone_selection is not ""
-        sub.prop(prop, "user_path", text="")
-        row = layout.row()
-        row = layout.row()
-        # row.menu(menu="OBJECT_MT_select_test", text="Select a Property")
 
+        # Dropdown of avaliable properties
+        col = layout.column(align=True)
+        eea = context.object.rhubarb
+        row = layout.row()
+
+        # Load and Select Properties
+        row = col.row(align=True)
+        row.operator("rhubarb.enum_get", text="Load Properties")
+        row.prop(eea, "presets", text="")
+
+        # Mouth Definitions
         col = layout.column()
         col.prop(prop, "mouth_a", text="Mouth A (MBP)")
         col.prop(prop, "mouth_b", text="Mouth B (EE/etc)")
@@ -46,34 +98,31 @@ class RhubarbLipsyncPanel(bpy.types.Panel):
         col.prop(prop, "mouth_h", text="Mouth H (L)")
         col.prop(prop, "mouth_x", text="Mouth X (rest)")
 
+        # Set Rhubarb Executable depencies
         row = layout.row(align=True)
         row.prop(prop, "sound_file", text="Sound file")
-
         row = layout.row(align=True)
         row.prop(prop, "dialog_file", text="Dialog file")
-
         row = layout.row()
         row.prop(prop, "start_frame", text="Start frame")
 
+        # Button to run rhubarb operator
         row = layout.row()
         sub = row.row()
-        sub.enabled = (
-            bpy.data.scenes["Scene"].bone_selection is not ""
-            and bpy.data.objects["Josephine - Control"].rhubarb.user_path is not ""
-        )
+        sub.enabled = sc.bone_selection != ""
         sub.operator(operator="object.rhubarb_lipsync")
 
     @classmethod
     def poll(cls, context):
-        return bpy.data.scenes["Scene"].bone_selection is not None
+        sc = bpy.data.scenes["Scene"]
+        # Controls if user can run op
+        return sc.bone_selection != None
 
 
-# Panel now stores all values in the same property group but it is not in pose mode Next step is to clean up the operator.
-
-
-class MouthShapesProperty(bpy.types.PropertyGroup):
+class pgrp_blender_rhubarb(bpy.types.PropertyGroup):
     """definitions for rhubarb properties"""
 
+    # Mouth shape properties
     mouth_a: bpy.props.IntProperty(name="moutha", default=1)
     mouth_b: bpy.props.IntProperty(name="mouthb", default=2)
     mouth_c: bpy.props.IntProperty(name="mouthc", default=3)
@@ -84,59 +133,37 @@ class MouthShapesProperty(bpy.types.PropertyGroup):
     mouth_h: bpy.props.IntProperty(name="mouthh", default=8)
     mouth_x: bpy.props.IntProperty(name="mouthx", default=9)
 
+    # delete this: path for tests
     user_path: bpy.props.StringProperty(
         name="Enter Custom Property Name",
         description="Enter the name of an int property exactly as it appears in the Custom Properties of the selected Bone",
     )
+
+    # rhubarb executable dependcies
     sound_file: bpy.props.StringProperty(name="sound_file", subtype="FILE_PATH")
     dialog_file: bpy.props.StringProperty(name="dialog_file", subtype="FILE_PATH")
-    stored_mouths: bpy.props.IntVectorProperty(name="stored_mouths", size=9)
-    default_mouths: bpy.props.IntVectorProperty(name="default_mouths", size=9)
-    aval_props: bpy.props.StringProperty(name="aval_prop_names")
     start_frame: bpy.props.IntProperty(name="start_frame")
 
+    # testing mouth def presets
+    stored_mouths: bpy.props.IntVectorProperty(name="stored_mouths", size=9)
 
-class BasicMenu(bpy.types.Menu):
-    """Testing menu to draw a list of props based on the selected context from above"""
+    # store avaliable props in enum
+    presets: bpy.props.EnumProperty(items=enum_items_generator, name="Position Preset")
 
-    bl_idname = "OBJECT_MT_select_test"
-    bl_label = "Select"
 
-    def draw(self, context):
-        # Can I make these definitions global?
-        layout = self.layout
-
-        obj_path = bpy.context.object
-        bone = bpy.data.scenes["Scene"].bone
-        bone_path = obj_path.pose.bones["{0}".format(bone)]
-        sc = bpy.data.scenes["Scene"]
-        arm_path = obj_path.pose.bones
-        rhubarb = bpy.context.object.rhubarb
-        print("draw menu active")
-        layout.operator(
-            "object.select_all", text="Select/Deselect All"
-        ).action = "TOGGLE"
-        layout.operator("object.select_all", text="Inverse").action = "INVERT"
-        layout.operator("object.select_random", text="Random")
-        bone_path = arm_path["{0}".format(sc.bone)]
-        """TESTING How to print all props on a bone https://blenderartists.org/t/is-it-possible-to-set-all-the-custom-properties-of-a-bone-to-0/545554/3
-        for x, value in bone_path.items():
-            # if type(value) is int: #Off for test
-            print('pose.bones["%s"]["%s"] =  %.1f' % (bone_path.name, x, value))
-            # rhubarb.aval_props = +"{0}".format(x) #NFG
-        print("list below")"""
+ctr = [
+    enum_get_blender_rhubarb,
+    pgrp_blender_rhubarb,
+    pnl_blender_rhubarb,
+]
 
 
 def register():
-    bpy.utils.register_class(MouthShapesProperty)
-    bpy.utils.register_class(RhubarbLipsyncPanel)
-    bpy.utils.register_class(BasicMenu)
-
-    bpy.types.Action.mouth_shapes = bpy.props.PointerProperty(type=MouthShapesProperty)
-    bpy.types.Object.rhubarb = bpy.props.PointerProperty(type=MouthShapesProperty)
+    for cls in ctr:
+        bpy.utils.register_class(cls)
+    bpy.types.Object.rhubarb = bpy.props.PointerProperty(type=pgrp_blender_rhubarb)
 
 
 def unregister():
-    bpy.utils.unregister_class(MouthShapesProperty)
-    bpy.utils.unregister_class(RhubarbLipsyncPanel)
-    bpy.utils.unregister_class(BasicMenu)
+    for cls in reversed(ctr):
+        bpy.utils.unregister_class(cls)
