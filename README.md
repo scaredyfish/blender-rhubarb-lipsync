@@ -8,7 +8,7 @@
 
 # Pre-Release Usage
 
-1. Install [latest release ](https://github.com/NickTiny/blender-rhubarb-lipsync/releases/download/v4.0.0/blender-rhubarb-lipsync.zip)
+1. Install [latest release](https://github.com/NickTiny/blender-rhubarb-lipsync/releases/download/v4.0.0/blender-rhubarb-lipsync.zip)
 2. Download and unzip [latest Rhubarb executable](https://github.com/DanielSWolf/rhubarb-lip-sync/releases)
 4. Set path in addon prefrences to rhubarb executable 
 
