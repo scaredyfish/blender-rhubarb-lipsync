@@ -2,6 +2,10 @@
 
 
 ---------------------------------------
+# Demo
+![demo-lipsync](https://user-images.githubusercontent.com/86638335/169669151-164d962d-60e5-4187-9247-12e5fc368ab1.gif)
+
+
 
 # Pre-Release Usage
 
@@ -13,7 +17,7 @@
 
 3. Ensure you are in Pose Mode
 4. Enter a Bone's Name
-5. Enter Name Interger Property Path within selected Bone. Found in the Bone's Custom Propeties.
+5. Load and select an Interger Property Path. These are found in the Bone's Custom Propeties.
 
 ![image](https://user-images.githubusercontent.com/86638335/168449804-30681006-0972-466d-9faf-6755a89047ed.png)
 
@@ -25,7 +29,6 @@
 
 
 ![image](https://user-images.githubusercontent.com/86638335/168452019-563c8a18-1994-4e37-a12e-cc90912ce74a.png)
-
 
 # Troubleshooting
 This software is pre-release and provided without support. In the event of problems, you can use the system console (Window->Toggle System Console on Windows, or start Blender from a command line on Mac/Linux) to get more info on progress and error messages. When reporting an issue, please include any errors reported here.
