@@ -3,8 +3,7 @@
 
 ---------------------------------------
 # Demo
-![demo-lipsync](https://user-images.githubusercontent.com/86638335/169669151-164d962d-60e5-4187-9247-12e5fc368ab1.gif)
-
+![demo-lipsync](https://user-images.githubusercontent.com/86638335/169669257-d6651fe3-252b-4127-ad55-07c7b1283bdc.gif)
 
 
 # Pre-Release Usage
