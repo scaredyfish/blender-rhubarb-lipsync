@@ -14,20 +14,9 @@
 
 ![image](https://user-images.githubusercontent.com/86638335/168449671-e38c26f1-4823-44ad-8898-d1b81b03e7d3.png)
 
-3. Ensure you are in Pose Mode
-4. Enter a Bone's Name
-5. Load and select an Interger Property Path. These are found in the Bone's Custom Propeties.
+3. Open the example.blend in the [Test Assets folder](https://github.com/NickTiny/blender-rhubarb-lipsync/tree/master/Test-Assets)
+4. Hit "Rhubarb Lipsync" to run operation
 
-![image](https://user-images.githubusercontent.com/86638335/168449804-30681006-0972-466d-9faf-6755a89047ed.png)
-
-
-7. Set Custom Mouth Integers
-8. Get [Audio-Sample-lipsync.zip](https://github.com/NickTiny/blender-rhubarb-lipsync/files/8693969/Audio-Sample-lipsync.zip) file here
-9. Hit "Rhubarb Lipsync" to run operation
-
-
-
-![image](https://user-images.githubusercontent.com/86638335/168452019-563c8a18-1994-4e37-a12e-cc90912ce74a.png)
 
 # Troubleshooting
 This software is pre-release and provided without support. In the event of problems, you can use the system console (Window->Toggle System Console on Windows, or start Blender from a command line on Mac/Linux) to get more info on progress and error messages. When reporting an issue, please include any errors reported here.
