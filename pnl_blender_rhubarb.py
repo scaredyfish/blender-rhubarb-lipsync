@@ -122,15 +122,16 @@ class pgrp_blender_rhubarb(bpy.types.PropertyGroup):
     """definitions for rhubarb properties"""
 
     # Mouth shape properties
-    mouth_a: bpy.props.IntProperty(name="moutha", default=1)
-    mouth_b: bpy.props.IntProperty(name="mouthb", default=2)
-    mouth_c: bpy.props.IntProperty(name="mouthc", default=3)
-    mouth_d: bpy.props.IntProperty(name="mouthd", default=4)
-    mouth_e: bpy.props.IntProperty(name="mouthe", default=5)
-    mouth_f: bpy.props.IntProperty(name="mouthf", default=6)
-    mouth_g: bpy.props.IntProperty(name="mouthg", default=7)
-    mouth_h: bpy.props.IntProperty(name="mouthh", default=8)
-    mouth_x: bpy.props.IntProperty(name="mouthx", default=9)
+    # TO DO these are allset to zero because user must manually initilize them.
+    mouth_a: bpy.props.IntProperty(name="moutha", default=0)
+    mouth_b: bpy.props.IntProperty(name="mouthb", default=0)
+    mouth_c: bpy.props.IntProperty(name="mouthc", default=0)
+    mouth_d: bpy.props.IntProperty(name="mouthd", default=0)
+    mouth_e: bpy.props.IntProperty(name="mouthe", default=0)
+    mouth_f: bpy.props.IntProperty(name="mouthf", default=0)
+    mouth_g: bpy.props.IntProperty(name="mouthg", default=0)
+    mouth_h: bpy.props.IntProperty(name="mouthh", default=0)
+    mouth_x: bpy.props.IntProperty(name="mouthx", default=0)
 
     # rhubarb executable dependcies
     sound_file: bpy.props.StringProperty(name="sound_file", subtype="FILE_PATH")

@@ -86,6 +86,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                         print(pose_index)
                     else:
                         pose_index = 0
+                        print(pose_index)
 
                     bone_path["{0}".format(user_data_path)] = pose_index
                     self.set_keyframes(context, frame_num)
