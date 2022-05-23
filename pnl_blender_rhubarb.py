@@ -41,9 +41,9 @@ class enum_get_blender_rhubarb(bpy.types.Operator):
         if sc.obj_selection:
             if sc.obj_selection.type == "ARMATURE":
                 bone = sc.bone_selection
-                bone_path = obj.pose.bones["{0}".format(bone)]
+                trg_path = obj.pose.bones["{0}".format(bone)]
             else:
-                bone_path = obj
+                trg_path = obj
         eea = context.object.rhubarb
         aob = context.view_layer.objects.active
 
@@ -51,7 +51,7 @@ class enum_get_blender_rhubarb(bpy.types.Operator):
             return report(self, "No active object selected!!!")
 
         prop_list.clear()
-        for prop_name, _ in bone_path.items():
+        for prop_name, _ in trg_path.items():
             prop_list.append((prop_name, prop_name, prop_name))
         return {"FINISHED"}
 

@@ -64,9 +64,9 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
 
                 if sc.obj_selection.type == "ARMATURE":
                     bone = sc.bone_selection
-                    bone_path = obj.pose.bones["{0}".format(bone)]
+                    trg_path = obj.pose.bones["{0}".format(bone)]
                 else:
-                    bone_path = obj
+                    trg_path = obj
 
                 for cue in results["mouthCues"]:
                     frame_num = round(cue["start"] * fps) + obj.rhubarb.start_frame
@@ -76,7 +76,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                                 frame_num - self.hold_frame_threshold
                             )
                         )
-                        bone_path["{0}".format(user_data_path)] = prev_pose
+                        trg_path["{0}".format(user_data_path)] = prev_pose
                         self.set_keyframes(
                             context, frame_num - self.hold_frame_threshold
                         )
@@ -95,7 +95,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                         pose_index = 0
                         print(pose_index)
 
-                    bone_path["{0}".format(user_data_path)] = pose_index
+                    trg_path["{0}".format(user_data_path)] = pose_index
                     self.set_keyframes(context, frame_num)
 
                     prev_pose = pose_index
@@ -124,11 +124,11 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
         user_data_path = context.object.rhubarb.presets
         if sc.obj_selection.type == "ARMATURE":
             bone = sc.bone_selection
-            bone_path = obj.pose.bones["{0}".format(bone)]
+            trg_path = obj.pose.bones["{0}".format(bone)]
         else:
-            bone_path = obj
+            trg_path = obj
 
-        bone_path.keyframe_insert(
+        trg_path.keyframe_insert(
             data_path='["{0}"]'.format(user_data_path),
             frame=frame,
         )
