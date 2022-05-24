@@ -64,8 +64,10 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
 
                 if sc.obj_selection.type == "ARMATURE":
                     bone = sc.bone_selection
-                    trg_path = obj.pose.bones["{0}".format(bone)]
-                else:
+                    trg_path = obj.pose.bones[f"{bone}"]
+                if sc.obj_selection.type == "GPENCIL":
+                    trg_path = obj.grease_pencil_modifiers
+                if sc.obj_selection.type == "MESH":
                     trg_path = obj
 
                 for cue in results["mouthCues"]:
@@ -76,10 +78,16 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                                 frame_num - self.hold_frame_threshold
                             )
                         )
-                        trg_path["{0}".format(user_data_path)] = prev_pose
-                        self.set_keyframes(
-                            context, frame_num - self.hold_frame_threshold
-                        )
+                        if sc.obj_selection.type != "GPENCIL":
+                            trg_path["{0}".format(user_data_path)] = prev_pose
+                            self.set_keyframes(
+                                context, frame_num - self.hold_frame_threshold
+                            )
+                        else:
+                            trg_path[f"{user_data_path}"].offset = prev_pose
+                            self.set_keyframes(
+                                context, frame_num - self.hold_frame_threshold
+                            )
 
                     print(
                         "start: {0} frame: {1} value: {2}".format(
@@ -95,9 +103,11 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                         pose_index = 0
                         print(pose_index)
 
-                    trg_path["{0}".format(user_data_path)] = pose_index
+                    if sc.obj_selection.type != "GPENCIL":
+                        trg_path["{0}".format(user_data_path)] = pose_index
+                    else:
+                        trg_path[f"{user_data_path}"].offset = pose_index
                     self.set_keyframes(context, frame_num)
-
                     prev_pose = pose_index
                     last_frame = frame_num
 
@@ -125,11 +135,17 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
         if sc.obj_selection.type == "ARMATURE":
             bone = sc.bone_selection
             trg_path = obj.pose.bones["{0}".format(bone)]
-        else:
+            key_path = f'["{user_data_path}"]'
+        if sc.obj_selection.type == "GPENCIL":
+            trg_path = obj.grease_pencil_modifiers[f"{user_data_path}"]
+            key_path = "offset"
+
+        if sc.obj_selection.type == "MESH":
             trg_path = obj
+            key_path = f'["{user_data_path}"]'
 
         trg_path.keyframe_insert(
-            data_path='["{0}"]'.format(user_data_path),
+            data_path=key_path,
             frame=frame,
         )
         context.object.animation_data.action.fcurves[-1].keyframe_points[

@@ -34,16 +34,17 @@ class enum_get_blender_rhubarb(bpy.types.Operator):
         # append bone properties to display in dropdown
         global prop_list
         sc = bpy.data.scenes["Scene"]
-        obj = context.object
+        obj = sc.obj_selection
         bone = sc.bone_selection
         sc = bpy.data.scenes["Scene"]
         obj = context.object
-        if sc.obj_selection:
-            if sc.obj_selection.type == "ARMATURE":
-                bone = sc.bone_selection
-                trg_path = obj.pose.bones["{0}".format(bone)]
-            else:
-                trg_path = obj
+        if sc.obj_selection.type == "ARMATURE":
+            bone = sc.bone_selection
+            trg_path = obj.pose.bones["{0}".format(bone)]
+        if sc.obj_selection.type == "GPENCIL":
+            trg_path = obj.grease_pencil_modifiers
+        if sc.obj_selection.type == "MESH":
+            trg_path = obj
         eea = context.object.rhubarb
         aob = context.view_layer.objects.active
 
@@ -52,7 +53,11 @@ class enum_get_blender_rhubarb(bpy.types.Operator):
 
         prop_list.clear()
         for prop_name, _ in trg_path.items():
-            prop_list.append((prop_name, prop_name, prop_name))
+            if sc.obj_selection.type != "GPENCIL":
+                if "int" in str(type(trg_path[f"{prop_name}"])):
+                    prop_list.append((prop_name, prop_name, prop_name))
+            else:
+                prop_list.append((prop_name, prop_name, prop_name))
         return {"FINISHED"}
 
 
@@ -77,7 +82,10 @@ class pnl_blender_rhubarb(bpy.types.Panel):
 
         # Bone Selection Menu
         # https://gist.github.com/daylanKifky/252baea63eb0c39858e3e9b57f1af167
-        layout.prop(sc, "obj_selection", text="")
+        layout.prop_search(
+            context.scene, "obj_selection", context.scene, "objects", text="target"
+        )
+        # layout.prop(sc, "obj_selection", text="")
 
         if sc.obj_selection:
             if sc.obj_selection.type == "ARMATURE":
