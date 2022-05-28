@@ -3,13 +3,11 @@ from bpy_extras.io_utils import ImportHelper
 from . import op_blender_rhubarb
 import bpy, mathutils
 
-"""Below are definitions for enumurated list of properties. 
-List of properties will be used for fetching how many 
-custom properties exist on a bone or object."""
-
+# List to store target's avaliable props
 prop_list = []
 
 
+# Generate list of items from target's props
 def enum_items_generator(self, context):
     enum_items = []
     for e, d in enumerate(prop_list):
@@ -17,46 +15,36 @@ def enum_items_generator(self, context):
     return enum_items
 
 
-def report(self, message):  # Just to report errors
-    self.report({"ERROR"}, message)
-    return {"CANCELLED"}
-
-
 class enum_get_blender_rhubarb(bpy.types.Operator):
-    """Operator for adding avaliable properties
-    from bone to enum list for panel."""
+    """List avaliable properties on active target."""
 
     bl_idname = "rhubarb.enum_get"
     bl_label = "List rhubarb destination properties"
-    bl_description = "Add new enum items to list for dropdown menu"
+    bl_description = "Add new enum items to list"
 
     def execute(self, context):
-        # append bone properties to display in dropdown
+        # List Definitons
         global prop_list
         sc = bpy.data.scenes["Scene"]
-        obj = sc.obj_selection
-        bone = sc.bone_selection
-        sc = bpy.data.scenes["Scene"]
         obj = context.object
-        if sc.obj_selection.type == "ARMATURE":
+        bone = sc.bone_selection
+
+        # Logic for Armature or GPencil obj
+        if obj.type == "ARMATURE":
             bone = sc.bone_selection
-            trg_path = obj.pose.bones["{0}".format(bone)]
-        if sc.obj_selection.type == "GPENCIL":
-            trg_path = obj.grease_pencil_modifiers
-        if sc.obj_selection.type == "MESH":
-            trg_path = obj
-        eea = context.object.rhubarb
-        aob = context.view_layer.objects.active
+            target = obj.pose.bones["{0}".format(bone)]
+        if obj.type == "GPENCIL":
+            target = obj.grease_pencil_modifiers
 
-        if aob == None:  # For case when there is no active object
-            return report(self, "No active object selected!!!")
-
+        # Reset list and append avaliable properties
         prop_list.clear()
-        for prop_name, _ in trg_path.items():
-            if sc.obj_selection.type != "GPENCIL":
-                if "int" in str(type(trg_path[f"{prop_name}"])):
+        for prop_name, _ in target.items():
+            # if GPencil find TimeOffset modifier's offset property
+            if obj.type != "GPENCIL":
+                if "int" in str(type(target[f"{prop_name}"])):
                     prop_list.append((prop_name, prop_name, prop_name))
             else:
+                # else find INT properties on selected bone
                 prop_list.append((prop_name, prop_name, prop_name))
         return {"FINISHED"}
 
@@ -75,35 +63,25 @@ class pnl_blender_rhubarb(bpy.types.Panel):
     bpy.types.Scene.bone_selection = bpy.props.StringProperty()
 
     def draw(self, context):
+        # Panel Definitions
         sc = bpy.data.scenes["Scene"]
         obj = context.object
         prop = context.object.rhubarb
         layout = self.layout
 
-        # Bone Selection Menu
-        # https://gist.github.com/daylanKifky/252baea63eb0c39858e3e9b57f1af167
-        layout.prop_search(
-            context.scene, "obj_selection", context.scene, "objects", text="target"
-        )
-        # layout.prop(sc, "obj_selection", text="")
+        # Display active object name
+        layout.label(text=f"Active Object: {obj.name}")  # TODO Improve this.
 
-        if sc.obj_selection:
-            if sc.obj_selection.type == "ARMATURE":
-                layout.prop_search(
-                    sc, "bone_selection", sc.obj_selection.data, "bones", text="Bone"
-                )
-
-        # Dropdown of avaliable properties
-        col = layout.column(align=True)
-        eea = context.object.rhubarb
-        row = layout.row()
+        # if obj is Armature select a bone to target
+        if obj.type == "ARMATURE":
+            layout.prop_search(sc, "bone_selection", obj.data, "bones", text="Bone")
 
         # Load and Select Properties
-        row = col.row(align=True)
+        row = layout.row(align=True)
         row.operator("rhubarb.enum_get", text="Load Properties")
-        row.prop(eea, "presets", text="")
+        row.prop(prop, "presets", text="")
 
-        # Mouth Definitions
+        # User editable Mouth Definitions
         col = layout.column()
         col.prop(prop, "mouth_a", text="Mouth A (MBP)")
         col.prop(prop, "mouth_b", text="Mouth B (EE/etc)")
@@ -123,7 +101,7 @@ class pnl_blender_rhubarb(bpy.types.Panel):
         row = layout.row()
         row.prop(prop, "start_frame", text="Start frame")
 
-        # Button to run rhubarb operator
+        # Button to execute rhubarb operation
         row = layout.row()
         row.operator(operator="object.rhubarb_lipsync")
 
@@ -132,7 +110,7 @@ class pgrp_blender_rhubarb(bpy.types.PropertyGroup):
     """definitions for rhubarb properties"""
 
     # Mouth shape properties
-    # TO DO these are allset to zero because user must manually initilize them.
+    # TODO these are all set to zero because user must manually initilize them.
     mouth_a: bpy.props.IntProperty(name="moutha", default=0)
     mouth_b: bpy.props.IntProperty(name="mouthb", default=0)
     mouth_c: bpy.props.IntProperty(name="mouthc", default=0)
@@ -147,11 +125,6 @@ class pgrp_blender_rhubarb(bpy.types.PropertyGroup):
     sound_file: bpy.props.StringProperty(name="sound_file", subtype="FILE_PATH")
     dialog_file: bpy.props.StringProperty(name="dialog_file", subtype="FILE_PATH")
     start_frame: bpy.props.IntProperty(name="start_frame")
-
-    # testing mouth def presets
-    stored_mouths: bpy.props.IntVectorProperty(name="stored_mouths", size=9)
-
-    # store avaliable props in enum
     presets: bpy.props.EnumProperty(items=enum_items_generator, name="Position Preset")
 
 

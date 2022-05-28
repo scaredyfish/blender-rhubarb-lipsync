@@ -59,16 +59,14 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                 last_frame = 0
                 prev_pose = 0
                 sc = bpy.data.scenes["Scene"]
+                prop_name = context.object.rhubarb.presets
 
-                user_data_path = context.object.rhubarb.presets
-
-                if sc.obj_selection.type == "ARMATURE":
+                # Logic for Armature or GPencil obj
+                if obj.type == "ARMATURE":
                     bone = sc.bone_selection
-                    trg_path = obj.pose.bones[f"{bone}"]
-                if sc.obj_selection.type == "GPENCIL":
-                    trg_path = obj.grease_pencil_modifiers
-                if sc.obj_selection.type == "MESH":
-                    trg_path = obj
+                    target = obj.pose.bones[f"{bone}"]
+                if obj.type == "GPENCIL":
+                    target = obj.grease_pencil_modifiers
 
                 for cue in results["mouthCues"]:
                     frame_num = round(cue["start"] * fps) + obj.rhubarb.start_frame
@@ -78,13 +76,14 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                                 frame_num - self.hold_frame_threshold
                             )
                         )
-                        if sc.obj_selection.type != "GPENCIL":
-                            trg_path["{0}".format(user_data_path)] = prev_pose
+                        # Set prev_pose for Armature or GPencil obj
+                        if obj.type != "GPENCIL":
+                            target["{0}".format(prop_name)] = prev_pose
                             self.set_keyframes(
                                 context, frame_num - self.hold_frame_threshold
                             )
                         else:
-                            trg_path[f"{user_data_path}"].offset = prev_pose
+                            target[f"{prop_name}"].offset = prev_pose
                             self.set_keyframes(
                                 context, frame_num - self.hold_frame_threshold
                             )
@@ -103,10 +102,11 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                         pose_index = 0
                         print(pose_index)
 
-                    if sc.obj_selection.type != "GPENCIL":
-                        trg_path["{0}".format(user_data_path)] = pose_index
+                    # Set pose_index for Armature or GPencil obj
+                    if obj.type != "GPENCIL":
+                        target["{0}".format(prop_name)] = pose_index
                     else:
-                        trg_path[f"{user_data_path}"].offset = pose_index
+                        target[f"{prop_name}"].offset = pose_index
                     self.set_keyframes(context, frame_num)
                     prev_pose = pose_index
                     last_frame = frame_num
@@ -131,21 +131,20 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
     def set_keyframes(self, context, frame):
         sc = bpy.data.scenes["Scene"]
         obj = context.object
-        user_data_path = context.object.rhubarb.presets
-        if sc.obj_selection.type == "ARMATURE":
+        prop_name = context.object.rhubarb.presets
+
+        # Set target to Armature or GPencil obj
+        if obj.type == "ARMATURE":
             bone = sc.bone_selection
-            trg_path = obj.pose.bones["{0}".format(bone)]
-            key_path = f'["{user_data_path}"]'
-        if sc.obj_selection.type == "GPENCIL":
-            trg_path = obj.grease_pencil_modifiers[f"{user_data_path}"]
-            key_path = "offset"
+            target = obj.pose.bones["{0}".format(bone)]
+            key_name = f'["{prop_name}"]'
+        if obj.type == "GPENCIL":
+            target = obj.grease_pencil_modifiers[f"{prop_name}"]
+            key_name = "offset"
 
-        if sc.obj_selection.type == "MESH":
-            trg_path = obj
-            key_path = f'["{user_data_path}"]'
-
-        trg_path.keyframe_insert(
-            data_path=key_path,
+        # Keyframe target
+        target.keyframe_insert(
+            data_path=key_name,
             frame=frame,
         )
         context.object.animation_data.action.fcurves[-1].keyframe_points[
@@ -207,64 +206,12 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
         wm.event_timer_remove(self._timer)
 
 
-class StoreMouthValues(bpy.types.Operator):
-
-    bl_idname = "object.rhubarb_lipsync_storemouths"
-    bl_label = "Store Rhubarb Mouths"
-    """For testing purposes. Save mouth 'definitions' for rhubarb lipsync"""
-
-    def execute(self, context):
-        obj = context.object
-        save = obj.rhubarb.stored_mouths
-        a = obj.rhubarb.mouth_a
-        b = obj.rhubarb.mouth_b
-        c = obj.rhubarb.mouth_c
-        d = obj.rhubarb.mouth_d
-        e = obj.rhubarb.mouth_e
-        f = obj.rhubarb.mouth_f
-        g = obj.rhubarb.mouth_g
-        h = obj.rhubarb.mouth_h
-        x = obj.rhubarb.mouth_x
-        MouthList = [a, b, c, d, e, f, g, h, x]
-        for x, mouths in enumerate(MouthList):
-            save[x] = MouthList[x]
-            print(save[x])
-        return {"FINISHED"}
-
-
-class DefMouthValues(bpy.types.Operator):
-
-    bl_idname = "object.rhubarb_lipsync_defemouths"
-    bl_label = "Define Rhubarb Mouths"
-    """For Testing purposes. Load saved mouth 'definitions' from rhubarb lipsync"""
-
-    def execute(self, context):
-        obj = context.object
-        read = obj.rhubarb.stored_mouths
-        obj.rhubarb.mouth_a = read[0]
-        obj.rhubarb.mouth_b = read[1]
-        obj.rhubarb.mouth_c = read[2]
-        obj.rhubarb.mouth_d = read[3]
-        obj.rhubarb.mouth_e = read[4]
-        obj.rhubarb.mouth_f = read[5]
-        obj.rhubarb.mouth_g = read[6]
-        obj.rhubarb.mouth_h = read[7]
-        obj.rhubarb.mouth_x = read[8]
-        for x in read:
-            print(str(x))
-        return {"FINISHED"}
-
-
 def register():
     bpy.utils.register_class(RhubarbLipsyncOperator)
-    bpy.utils.register_class(StoreMouthValues)
-    bpy.utils.register_class(DefMouthValues)
 
 
 def unregister():
     bpy.utils.unregister_class(RhubarbLipsyncOperator)
-    bpy.utils.unregister_class(StoreMouthValues)
-    bpy.utils.unregister_class(DefMouthValues)
 
 
 if __name__ == "__main__":
