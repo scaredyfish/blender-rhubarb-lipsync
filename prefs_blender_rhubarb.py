@@ -12,7 +12,7 @@ class RhubarbAddonPreferences(AddonPreferences):
         name="Rhubarb lipsync executable",
         subtype="FILE_PATH",
         default=bpy.utils.user_resource("SCRIPTS")
-        + "/blender-rhubarb-lipsync/bin/rhubarb"
+        + "/addons/blender-rhubarb-lipsync/bin/rhubarb"
         + (".exe" if system() == "Windows" else ""),
     )
 
