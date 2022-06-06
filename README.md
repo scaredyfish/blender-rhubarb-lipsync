@@ -13,7 +13,7 @@ https://user-images.githubusercontent.com/86638335/171532253-07fc28af-93c4-4d94-
 # Pre-Release Usage
 
 1. Install [latest release](https://github.com/NickTiny/blender-rhubarb-lipsync/releases/download/v4.0.0/blender-rhubarb-lipsync.4.0.0-ALPHA-Win10.zip)
-2. Open the example.blend in the [Test Assets folder](https://github.com/NickTiny/blender-rhubarb-lipsync/tree/master/Test-Assets)
+2. Open the example.blend in [Test-Assets.zip](https://github.com/NickTiny/blender-rhubarb-lipsync/files/8841208/Test-Assets.zip)
 3. Set a GPencil with a time offset or an Armature with a int prop as active
 4. Set prop/modifier name using "Load Properties" dropdown
 5. Hit "Rhubarb Lipsync" to run operation
