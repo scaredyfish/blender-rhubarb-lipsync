@@ -7,46 +7,25 @@ import bpy, mathutils
 prop_list = []
 
 
+def update_list(obj, target):
+    # Reset list and append avaliable properties
+    prop_list.clear()
+    for prop_name, _ in target.items():
+        # if GPencil find TimeOffset modifier's offset property
+        if obj.type != "GPENCIL":
+            if "int" in str(type(target[f"{prop_name}"])):
+                prop_list.append((prop_name, prop_name, prop_name))
+        else:
+            # else find INT properties on selected bone
+            prop_list.append((prop_name, prop_name, prop_name))
+
+
 # Generate list of items from target's props
 def enum_items_generator(self, context):
     enum_items = []
     for e, d in enumerate(prop_list):
         enum_items.append((d[0], d[0], d[0], e))
     return enum_items
-
-
-class enum_get_blender_rhubarb(bpy.types.Operator):
-    """List avaliable properties on active target."""
-
-    bl_idname = "rhubarb.enum_get"
-    bl_label = "List rhubarb destination properties"
-    bl_description = "Add new enum items to list"
-
-    def execute(self, context):
-        # List Definitons
-        global prop_list
-        sc = bpy.data.scenes["Scene"]
-        obj = context.object
-        bone = sc.bone_selection
-
-        # Logic for Armature or GPencil obj
-        if obj.type == "ARMATURE":
-            bone = sc.bone_selection
-            target = obj.pose.bones["{0}".format(bone)]
-        if obj.type == "GPENCIL":
-            target = obj.grease_pencil_modifiers
-
-        # Reset list and append avaliable properties
-        prop_list.clear()
-        for prop_name, _ in target.items():
-            # if GPencil find TimeOffset modifier's offset property
-            if obj.type != "GPENCIL":
-                if "int" in str(type(target[f"{prop_name}"])):
-                    prop_list.append((prop_name, prop_name, prop_name))
-            else:
-                # else find INT properties on selected bone
-                prop_list.append((prop_name, prop_name, prop_name))
-        return {"FINISHED"}
 
 
 class pnl_blender_rhubarb(bpy.types.Panel):
@@ -61,6 +40,25 @@ class pnl_blender_rhubarb(bpy.types.Panel):
     # Pointer definitions
     bpy.types.Scene.obj_selection = bpy.props.PointerProperty(type=bpy.types.Object)
     bpy.types.Scene.bone_selection = bpy.props.StringProperty()
+
+    @classmethod
+    def poll(cls, context: bpy.types.Context):
+        global prop_list
+        sc = bpy.data.scenes["Scene"]
+        obj = context.object
+        bone = sc.bone_selection
+        if obj.type == "ARMATURE":
+            bone = sc.bone_selection
+            target = obj.pose.bones["{0}".format(bone)]
+            update_list(obj, target)
+            return
+        if obj.type == "GPENCIL":
+            target = obj.grease_pencil_modifiers
+            update_list(obj, target)
+            return
+        else:
+            prop_list.clear()
+            return
 
     def draw(self, context):
         # Panel Definitions
@@ -78,7 +76,7 @@ class pnl_blender_rhubarb(bpy.types.Panel):
 
         # Load and Select Properties
         row = layout.row(align=True)
-        row.operator("rhubarb.enum_get", text="Load Properties")
+        # row.operator("rhubarb.enum_get", text="Load Properties")
         row.prop(prop, "presets", text="")
 
         # User editable Mouth Definitions
@@ -129,7 +127,6 @@ class pgrp_blender_rhubarb(bpy.types.PropertyGroup):
 
 
 ctr = [
-    enum_get_blender_rhubarb,
     pgrp_blender_rhubarb,
     pnl_blender_rhubarb,
 ]
