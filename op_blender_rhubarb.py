@@ -25,8 +25,32 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
     cue_prefix = "Mouth_"
     hold_frame_threshold = 4
 
-    def modal(self, context, event):
+    def get_the_target(self, context):
+        sc = context.scene
+        obj = context.object
+        if obj.type == "ARMATURE":
+            bone = sc.bone_selection
+            target = obj.pose.bones[f"{bone}"]
+            return target
+        if obj.type == "GPENCIL" and obj.grease_pencil_modifiers.items() != []:
+            target = obj.grease_pencil_modifiers
+            return target
+        else:
+            target = context.object
+            return target
 
+    def get_pose_dest(self, context, frame_num, set_pose):
+        obj = context.object
+        prop_name = context.object.rhubarb.presets
+        target = self.get_the_target(context)
+        if obj.type != "GPENCIL":
+            target["{0}".format(prop_name)] = set_pose
+            self.set_keyframes(context, frame_num - self.hold_frame_threshold)
+        else:
+            set_pose = target[f"{prop_name}"].offset = set_pose
+            self.set_keyframes(context, frame_num - self.hold_frame_threshold)
+
+    def modal(self, context, event):
         wm = context.window_manager
         wm.progress_update(50)
         try:
@@ -58,16 +82,8 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                 obj = context.object
                 last_frame = 0
                 prev_pose = 0
-                sc = bpy.data.scenes["Scene"]
-                prop_name = context.object.rhubarb.presets
 
                 # Logic for Armature or GPencil obj
-                if obj.type == "ARMATURE":
-                    bone = sc.bone_selection
-                    target = obj.pose.bones[f"{bone}"]
-                if obj.type == "GPENCIL":
-                    target = obj.grease_pencil_modifiers
-
                 for cue in results["mouthCues"]:
                     frame_num = round(cue["start"] * fps) + obj.rhubarb.start_frame
                     if frame_num - last_frame > self.hold_frame_threshold:
@@ -77,16 +93,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                             )
                         )
                         # Set prev_pose for Armature or GPencil obj
-                        if obj.type != "GPENCIL":
-                            target["{0}".format(prop_name)] = prev_pose
-                            self.set_keyframes(
-                                context, frame_num - self.hold_frame_threshold
-                            )
-                        else:
-                            target[f"{prop_name}"].offset = prev_pose
-                            self.set_keyframes(
-                                context, frame_num - self.hold_frame_threshold
-                            )
+                        self.get_pose_dest(context, frame_num, prev_pose)
 
                     print(
                         "start: {0} frame: {1} value: {2}".format(
@@ -103,11 +110,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                         print(pose_index)
 
                     # Set pose_index for Armature or GPencil obj
-                    if obj.type != "GPENCIL":
-                        target["{0}".format(prop_name)] = pose_index
-                    else:
-                        target[f"{prop_name}"].offset = pose_index
-                    self.set_keyframes(context, frame_num)
+                    self.get_pose_dest(context, frame_num, pose_index)
                     prev_pose = pose_index
                     last_frame = frame_num
 
@@ -129,7 +132,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
             return {"CANCELLED"}
 
     def set_keyframes(self, context, frame):
-        sc = bpy.data.scenes["Scene"]
+        sc = context.scene
         obj = context.object
         prop_name = context.object.rhubarb.presets
 
@@ -138,9 +141,13 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
             bone = sc.bone_selection
             target = obj.pose.bones["{0}".format(bone)]
             key_name = f'["{prop_name}"]'
-        if obj.type == "GPENCIL":
+        if obj.type == "GPENCIL" and obj.grease_pencil_modifiers.items() != []:
+
             target = obj.grease_pencil_modifiers[f"{prop_name}"]
             key_name = "offset"
+        else:
+            target = obj
+            key_name = f'["{prop_name}"]'
 
         # Keyframe target
         target.keyframe_insert(

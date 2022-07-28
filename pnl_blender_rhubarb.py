@@ -1,3 +1,4 @@
+from types import NoneType
 import bpy
 from bpy_extras.io_utils import ImportHelper
 from . import op_blender_rhubarb
@@ -12,7 +13,7 @@ def update_list(obj, target):
     prop_list.clear()
     for prop_name, _ in target.items():
         # if GPencil find TimeOffset modifier's offset property
-        if obj.type != "GPENCIL":
+        if obj.grease_pencil_modifiers.items() == []:
             if "int" in str(type(target[f"{prop_name}"])):
                 prop_list.append((prop_name, prop_name, prop_name))
         else:
@@ -44,25 +45,29 @@ class pnl_blender_rhubarb(bpy.types.Panel):
     @classmethod
     def poll(cls, context: bpy.types.Context):
         global prop_list
-        sc = bpy.data.scenes["Scene"]
+        sc = context.scene
         obj = context.object
         bone = sc.bone_selection
         if obj.type == "ARMATURE":
+            prop_list.clear()
             bone = sc.bone_selection
             target = obj.pose.bones["{0}".format(bone)]
             update_list(obj, target)
-            return
-        if obj.type == "GPENCIL":
+            return target
+        if obj.type == "GPENCIL" and obj.grease_pencil_modifiers.items() != []:
+            prop_list.clear()
             target = obj.grease_pencil_modifiers
             update_list(obj, target)
-            return
+            return target
         else:
+            target = obj
             prop_list.clear()
-            return
+            update_list(obj, target)
+            return target
 
     def draw(self, context):
         # Panel Definitions
-        sc = bpy.data.scenes["Scene"]
+        sc = context.scene
         obj = context.object
         prop = context.object.rhubarb
         layout = self.layout
