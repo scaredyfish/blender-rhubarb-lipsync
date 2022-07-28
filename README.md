@@ -2,21 +2,19 @@
 
 
 ---------------------------------------
-# Demo GPencil Time Offset Modifier
-https://user-images.githubusercontent.com/86638335/171532642-ef34a8f6-1084-47ed-8205-6eda2c12625e.mp4
+# Demo with GPencil Time Offset Modifier
+![update-rhubarb](https://user-images.githubusercontent.com/86638335/172741045-61a8ed1d-a696-464a-a17b-3aca41205e08.gif)
 
-
-# Demo Armature with custom prop
-https://user-images.githubusercontent.com/86638335/171532253-07fc28af-93c4-4d94-8cf6-f8defd56846d.mp4
 
 
 # Pre-Release Usage
 
 1. Install [latest release](https://github.com/NickTiny/blender-rhubarb-lipsync/releases/download/v4.0.0/blender-rhubarb-lipsync.4.0.0-ALPHA-Win10.zip)
-2. Open the example.blend in [Test-Assets.zip](https://github.com/NickTiny/blender-rhubarb-lipsync/files/8841208/Test-Assets.zip)
+2. Open the example.blend in [Test-Assets.zip](https://github.com/NickTiny/blender-rhubarb-lipsync/files/8865822/Test-Assets.zip)
 3. Set a GPencil with a time offset or an Armature with a int prop as active
 4. Set prop/modifier name using "Load Properties" dropdown
 5. Hit "Rhubarb Lipsync" to run operation
+
 
 
 # Troubleshooting
