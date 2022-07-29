@@ -28,11 +28,12 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
     def get_the_target(self, context):
         sc = context.scene
         obj = context.object
-        if obj.type == "ARMATURE":
+        prop = context.object.rhubarb
+        if prop.obj_modes == "bone":
             bone = sc.bone_selection
             target = obj.pose.bones[f"{bone}"]
             return target
-        if obj.type == "GPENCIL" and obj.grease_pencil_modifiers.items() != []:
+        if prop.obj_modes == "timeoffset":
             target = obj.grease_pencil_modifiers
             return target
         else:
@@ -43,7 +44,8 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
         obj = context.object
         prop_name = context.object.rhubarb.presets
         target = self.get_the_target(context)
-        if obj.type != "GPENCIL":
+        prop = context.object.rhubarb
+        if prop.obj_modes != "timeoffset":
             target["{0}".format(prop_name)] = set_pose
             self.set_keyframes(context, frame_num - self.hold_frame_threshold)
         else:
@@ -134,18 +136,18 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
     def set_keyframes(self, context, frame):
         sc = context.scene
         obj = context.object
+        prop = context.object.rhubarb
         prop_name = context.object.rhubarb.presets
 
         # Set target to Armature or GPencil obj
-        if obj.type == "ARMATURE":
+        if prop.obj_modes == "bone":
             bone = sc.bone_selection
             target = obj.pose.bones["{0}".format(bone)]
             key_name = f'["{prop_name}"]'
-        if obj.type == "GPENCIL" and obj.grease_pencil_modifiers.items() != []:
-
+        if prop.obj_modes == "timeoffset":
             target = obj.grease_pencil_modifiers[f"{prop_name}"]
             key_name = "offset"
-        else:
+        if prop.obj_modes == "obj":
             target = obj
             key_name = f'["{prop_name}"]'
 

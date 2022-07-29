@@ -11,10 +11,13 @@ prop_list = []
 def update_list(obj, target):
     # Reset list and append avaliable properties
     prop_list.clear()
+    prop = bpy.context.object.rhubarb
     for prop_name, _ in target.items():
         # if GPencil find TimeOffset modifier's offset property
-        if obj.grease_pencil_modifiers.items() == []:
-            if "int" in str(type(target[f"{prop_name}"])):
+        if prop.obj_modes != "timeoffset":
+            if "int" in str(type(target[f"{prop_name}"])) or "float" in str(
+                type(target[f"{prop_name}"])
+            ):
                 prop_list.append((prop_name, prop_name, prop_name))
         else:
             # else find INT properties on selected bone
@@ -27,6 +30,50 @@ def enum_items_generator(self, context):
     for e, d in enumerate(prop_list):
         enum_items.append((d[0], d[0], d[0], e))
     return enum_items
+
+
+def mode_options_generator(self, context):
+    obj_enum = (
+        "obj",
+        "Object",
+        "Keyframe integer or float property on any object's data",
+        "OBJECT_DATA",
+        1,
+    )
+    bone_enum = (
+        "bone",
+        "Bone",
+        "Keyframe integer or float property on any bone in Pose Mode",
+        "BONE_DATA",
+        2,
+    )
+    timeoffset_enum = (
+        "timeoffset",
+        "TimeOffset",
+        "Directly keyframe time offset modifier",
+        "MOD_TIME",
+        3,
+    )
+
+    if (
+        context.active_object.type == "GPENCIL"
+        and context.object.grease_pencil_modifiers.items() != []
+    ):
+        mode_items = [
+            obj_enum,
+            timeoffset_enum,
+        ]
+        return mode_items
+    if context.active_object.type == "ARMATURE":
+        mode_items = [
+            obj_enum,
+            bone_enum,
+        ]
+        return mode_items
+    else:
+        mode_items = [
+            obj_enum,
+        ]
 
 
 class pnl_blender_rhubarb(bpy.types.Panel):
@@ -48,13 +95,14 @@ class pnl_blender_rhubarb(bpy.types.Panel):
         sc = context.scene
         obj = context.object
         bone = sc.bone_selection
-        if obj.type == "ARMATURE":
+        prop = context.object.rhubarb
+        if prop.obj_modes == "bone":
             prop_list.clear()
             bone = sc.bone_selection
             target = obj.pose.bones["{0}".format(bone)]
             update_list(obj, target)
             return target
-        if obj.type == "GPENCIL" and obj.grease_pencil_modifiers.items() != []:
+        if prop.obj_modes == "timeoffset" and obj.grease_pencil_modifiers.items() != []:
             prop_list.clear()
             target = obj.grease_pencil_modifiers
             update_list(obj, target)
@@ -74,15 +122,21 @@ class pnl_blender_rhubarb(bpy.types.Panel):
 
         # Display active object name
         layout.label(text=f"Active Object: {obj.name}")  # TODO Improve this.
+        row = layout.row(align=True)
+        row.prop(prop, "obj_modes", text="Object Mode", toggle=True)
 
         # if obj is Armature select a bone to target
-        if obj.type == "ARMATURE":
+        if prop.obj_modes == "bone":
             layout.prop_search(sc, "bone_selection", obj.data, "bones", text="Bone")
-
+        row = layout.row()
         # Load and Select Properties
-        row = layout.row(align=True)
+        row.prop(
+            prop,
+            "presets",
+            text="",
+        )
+
         # row.operator("rhubarb.enum_get", text="Load Properties")
-        row.prop(prop, "presets", text="")
 
         # User editable Mouth Definitions
         col = layout.column()
@@ -128,7 +182,15 @@ class pgrp_blender_rhubarb(bpy.types.PropertyGroup):
     sound_file: bpy.props.StringProperty(name="sound_file", subtype="FILE_PATH")
     dialog_file: bpy.props.StringProperty(name="dialog_file", subtype="FILE_PATH")
     start_frame: bpy.props.IntProperty(name="start_frame")
-    presets: bpy.props.EnumProperty(items=enum_items_generator, name="Position Preset")
+    presets: bpy.props.EnumProperty(
+        items=enum_items_generator, name="Select Target Property"
+    )
+
+    obj_modes: bpy.props.EnumProperty(
+        name="Select mode",
+        items=mode_options_generator,
+        description="Run Rhubarb Lipsync in",
+    )
 
 
 ctr = [
