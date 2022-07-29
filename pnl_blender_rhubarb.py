@@ -8,13 +8,13 @@ import bpy, mathutils
 prop_list = []
 
 
-def update_list(obj, target):
+def update_list(context, target):
     # Reset list and append avaliable properties
     prop_list.clear()
-    prop = bpy.context.object.rhubarb
+    rhubarb = context.object.rhubarb
     for prop_name, _ in target.items():
         # if GPencil find TimeOffset modifier's offset property
-        if prop.obj_modes != "timeoffset":
+        if rhubarb.obj_modes != "timeoffset":
             if "int" in str(type(target[f"{prop_name}"])) or "float" in str(
                 type(target[f"{prop_name}"])
             ):
@@ -74,6 +74,7 @@ def mode_options_generator(self, context):
         mode_items = [
             obj_enum,
         ]
+        return mode_items
 
 
 class pnl_blender_rhubarb(bpy.types.Panel):
@@ -95,43 +96,50 @@ class pnl_blender_rhubarb(bpy.types.Panel):
         sc = context.scene
         obj = context.object
         bone = sc.bone_selection
-        prop = context.object.rhubarb
-        if prop.obj_modes == "bone":
+        rhubarb = context.active_object.rhubarb
+        if rhubarb.obj_modes == "bone":
             prop_list.clear()
             bone = sc.bone_selection
             target = obj.pose.bones["{0}".format(bone)]
-            update_list(obj, target)
+            update_list(context, target)
             return target
-        if prop.obj_modes == "timeoffset" and obj.grease_pencil_modifiers.items() != []:
+        if (
+            rhubarb.obj_modes == "timeoffset"
+            and obj.grease_pencil_modifiers.items() != []
+        ):
             prop_list.clear()
             target = obj.grease_pencil_modifiers
-            update_list(obj, target)
+            update_list(context, target)
             return target
         else:
             target = obj
             prop_list.clear()
-            update_list(obj, target)
+            update_list(context, target)
             return target
 
     def draw(self, context):
         # Panel Definitions
         sc = context.scene
         obj = context.object
-        prop = context.object.rhubarb
+        rhubarb = context.active_object.rhubarb
         layout = self.layout
 
         # Display active object name
         layout.label(text=f"Active Object: {obj.name}")  # TODO Improve this.
         row = layout.row(align=True)
-        row.prop(prop, "obj_modes", text="Object Mode", toggle=True)
+        row.prop(rhubarb, "obj_modes", text="Object Mode", toggle=True)
 
         # if obj is Armature select a bone to target
-        if prop.obj_modes == "bone":
+        if rhubarb.obj_modes == "bone":
             layout.prop_search(sc, "bone_selection", obj.data, "bones", text="Bone")
         row = layout.row()
         # Load and Select Properties
+
+        if rhubarb.presets == "":
+            row.alert = True
+            row.label(text="No avaliable properties", icon="ERROR")
         row.prop(
-            prop,
+            rhubarb,
             "presets",
             text="",
         )
@@ -140,23 +148,23 @@ class pnl_blender_rhubarb(bpy.types.Panel):
 
         # User editable Mouth Definitions
         col = layout.column()
-        col.prop(prop, "mouth_a", text="Mouth A (MBP)")
-        col.prop(prop, "mouth_b", text="Mouth B (EE/etc)")
-        col.prop(prop, "mouth_c", text="Mouth C (E)")
-        col.prop(prop, "mouth_d", text="Mouth D (AI)")
-        col.prop(prop, "mouth_e", text="Mouth E (O)")
-        col.prop(prop, "mouth_f", text="Mouth F (WQ)")
-        col.prop(prop, "mouth_g", text="Mouth G (FV)")
-        col.prop(prop, "mouth_h", text="Mouth H (L)")
-        col.prop(prop, "mouth_x", text="Mouth X (rest)")
+        col.prop(rhubarb, "mouth_a", text="Mouth A (MBP)")
+        col.prop(rhubarb, "mouth_b", text="Mouth B (EE/etc)")
+        col.prop(rhubarb, "mouth_c", text="Mouth C (E)")
+        col.prop(rhubarb, "mouth_d", text="Mouth D (AI)")
+        col.prop(rhubarb, "mouth_e", text="Mouth E (O)")
+        col.prop(rhubarb, "mouth_f", text="Mouth F (WQ)")
+        col.prop(rhubarb, "mouth_g", text="Mouth G (FV)")
+        col.prop(rhubarb, "mouth_h", text="Mouth H (L)")
+        col.prop(rhubarb, "mouth_x", text="Mouth X (rest)")
 
         # Set Rhubarb Executable depencies
         row = layout.row(align=True)
-        row.prop(prop, "sound_file", text="Sound file")
+        row.prop(rhubarb, "sound_file", text="Sound file")
         row = layout.row(align=True)
-        row.prop(prop, "dialog_file", text="Dialog file")
+        row.prop(rhubarb, "dialog_file", text="Dialog file")
         row = layout.row()
-        row.prop(prop, "start_frame", text="Start frame")
+        row.prop(rhubarb, "start_frame", text="Start frame")
 
         # Button to execute rhubarb operation
         row = layout.row()

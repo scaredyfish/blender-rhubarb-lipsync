@@ -27,13 +27,13 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
 
     def get_the_target(self, context):
         sc = context.scene
-        obj = context.object
-        prop = context.object.rhubarb
-        if prop.obj_modes == "bone":
+        obj = context.active_object
+        rhubarb = obj.rhubarb
+        if rhubarb.obj_modes == "bone":
             bone = sc.bone_selection
             target = obj.pose.bones[f"{bone}"]
             return target
-        if prop.obj_modes == "timeoffset":
+        if rhubarb.obj_modes == "timeoffset":
             target = obj.grease_pencil_modifiers
             return target
         else:
@@ -41,11 +41,11 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
             return target
 
     def get_pose_dest(self, context, frame_num, set_pose):
-        obj = context.object
+        obj = context.active_object
         prop_name = context.object.rhubarb.presets
         target = self.get_the_target(context)
-        prop = context.object.rhubarb
-        if prop.obj_modes != "timeoffset":
+        rhubarb = obj.rhubarb
+        if rhubarb.obj_modes != "timeoffset":
             target["{0}".format(prop_name)] = set_pose
             self.set_keyframes(context, frame_num - self.hold_frame_threshold)
         else:
@@ -81,7 +81,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                 wm.event_timer_remove(self._timer)
                 results = json.loads(stdout)
                 fps = context.scene.render.fps
-                obj = context.object
+                obj = context.active_object
                 last_frame = 0
                 prev_pose = 0
 
@@ -104,8 +104,8 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                     )
 
                     mouth_shape = "mouth_" + cue["value"].lower()
-                    if mouth_shape in context.object.rhubarb:
-                        pose_index = context.object.rhubarb[mouth_shape]
+                    if mouth_shape in obj.rhubarb:
+                        pose_index = obj.rhubarb[mouth_shape]
                         print(pose_index)
                     else:
                         pose_index = 0
@@ -135,19 +135,19 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
 
     def set_keyframes(self, context, frame):
         sc = context.scene
-        obj = context.object
-        prop = context.object.rhubarb
-        prop_name = context.object.rhubarb.presets
+        obj = context.active_object
+        rhubarb = obj.rhubarb
+        prop_name = obj.rhubarb.presets
 
         # Set target to Armature or GPencil obj
-        if prop.obj_modes == "bone":
+        if rhubarb.obj_modes == "bone":
             bone = sc.bone_selection
             target = obj.pose.bones["{0}".format(bone)]
             key_name = f'["{prop_name}"]'
-        if prop.obj_modes == "timeoffset":
+        if rhubarb.obj_modes == "timeoffset":
             target = obj.grease_pencil_modifiers[f"{prop_name}"]
             key_name = "offset"
-        if prop.obj_modes == "obj":
+        if rhubarb.obj_modes == "obj":
             target = obj
             key_name = f'["{prop_name}"]'
 
