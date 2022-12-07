@@ -6,12 +6,11 @@ import io
 import sys
 import select
 import subprocess
-from threading  import Thread
+from threading import Thread
 from queue import Queue, Empty
 import json
 import os
 from mathutils import Matrix
-
 
 
 class RhubarbLipsyncOperator(bpy.types.Operator):
@@ -34,7 +33,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
 
         try:
             (stdout, stderr) = self.rhubarb.communicate(timeout=1)
-        
+
             try:
                 result = json.loads(stderr)
                 if result['type'] == 'progress':
@@ -51,12 +50,12 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                 pass
             except json.decoder.JSONDecodeError:
                 pass
-            
+
             self.rhubarb.poll()
 
             if self.rhubarb.returncode is not None:
                 wm.event_timer_remove(self._timer)
-    
+
                 results = json.loads(stdout)
                 fps = context.scene.render.fps
                 lib = context.object.pose_library
@@ -66,7 +65,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                 for cue in results['mouthCues']:
                     frame_num = round(cue['start'] * fps) + lib.mouth_shapes.start_frame
                     
-                    
+
                     # add hold key if time since last key is large
                     if frame_num - last_frame > self.hold_frame_threshold:
                         print("hold frame: {0}".format(frame_num- self.hold_frame_threshold))
@@ -79,9 +78,9 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                         pose_index = context.object.pose_library.mouth_shapes[mouth_shape]
                     else:
                         pose_index = context.object.pose_library.mouth_shapes["mouth_x"]
+
                     
                     self.apply_pose(context, frame_num - self.hold_frame_threshold, bpy.data.actions[pose_index])
-                    
 
                     prev_pose = pose_index
                     last_frame = frame_num
@@ -101,14 +100,14 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
             print(template.format(type(ex).__name__, ex.args))
             wm.progress_end()
             return {'CANCELLED'}
-    
-    def apply_pose(self,context, frame, pose):
+
+    def apply_pose(self, context, frame, pose):
         bpy.context.scene.frame_set(frame)
-        
+
         print(pose)
-        
+
         context.object.pose.apply_pose_from_action(action=pose,evaluation_time=frame)
-        
+
         for i in pose.fcurves:
             i.evaluate(frame)
             context.object.pose.bones[i.data_path.split("\"")[1]].keyframe_insert(data_path=i.data_path.split("]")[1].replace(".",""), frame=frame)
@@ -121,16 +120,16 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
         dialogfile = bpy.path.abspath(context.object.pose_library.mouth_shapes.dialog_file)
         recognizer = bpy.path.abspath(addon_prefs.recognizer)
         executable = bpy.path.abspath(addon_prefs.executable_path)
-        
+
         # This is ugly, but Blender unpacks the zip without execute permission
         os.chmod(executable, 0o744)
 
         command = [executable, "-f", "json", "--machineReadable", "--extendedShapes", "GHX", "-r", recognizer, inputfile]
-        
+
         if dialogfile:
             command.append("--dialogFile")
-            command.append(dialogfile )
-        
+            command.append(dialogfile)
+
         self.rhubarb = subprocess.Popen(command,
                                         stdout=subprocess.PIPE, universal_newlines=True)
 
@@ -153,8 +152,6 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
     def cancel(self, context):
         wm = context.window_manager
         wm.event_timer_remove(self._timer)
-        
-
 
 
 def register():
@@ -164,6 +161,6 @@ def register():
 def unregister():
     bpy.utils.unregister_class(RhubarbLipsyncOperator)
 
+
 if __name__ == "__main__":
     register()
-
