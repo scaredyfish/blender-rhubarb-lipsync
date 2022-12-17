@@ -11,8 +11,11 @@ class RhubarbAddonPreferences(AddonPreferences):
     executable_path: StringProperty(
         name="Rhubarb lipsync executable",
         subtype="FILE_PATH",
-        default="C:\\Users\\nalbe\AppData\\Roaming\\Blender Foundation\\Blender\\3.3\scripts\\addons\\blender-rhubarb-lipsync\\rhubarb.exe",  # TODO REPLACE
-    )  # TODO default path doesn't work when executing from base
+        default=bpy.utils.user_resource("SCRIPTS")
+        + "\\addons\\blender-rhubarb-lipsync\\bin\\rhubarb"
+        + (".exe" if system() == "Windows" else ""),
+    )
+
     recognizer: EnumProperty(
         name="Recognizer",
         items=[
