@@ -1,6 +1,5 @@
 from distutils.util import execute
 import enum
-from operator import index
 import bpy
 from bpy import types
 from bpy.props import IntProperty, FloatProperty
@@ -14,37 +13,23 @@ from threading import Thread, local
 from queue import Queue, Empty
 import json
 import os
+from .core import get_target
 
 
-class RhubarbLipsyncOperator(bpy.types.Operator):
+class RHUBARB_OT_Execute_Rhubarb_Lipsync(bpy.types.Operator):
     """Run Rhubarb lipsync"""
 
-    bl_idname = "object.rhubarb_lipsync"
+    bl_idname = "rhubarb.execute_rhubarb_lipsync"
     bl_label = "Rhubarb lipsync"
 
     cue_prefix = "Mouth_"
     hold_frame_threshold = 4
 
-    def get_the_target(self, context):
-        sc = context.scene
-        obj = context.active_object
-        rhubarb = obj.rhubarb
-        if rhubarb.obj_modes == "bone":
-            bone = sc.bone_selection
-            target = obj.pose.bones[f"{bone}"]
-            return target
-        if rhubarb.obj_modes == "timeoffset":
-            target = obj.grease_pencil_modifiers
-            return target
-        else:
-            target = context.object
-            return target
-
     def get_pose_dest(self, context, frame_num, set_pose):
         obj = context.active_object
-        prop_name = context.object.rhubarb.presets
-        target = self.get_the_target(context)
-        rhubarb = obj.rhubarb
+        prop_name = context.window_manager.rhubarb_panel_settings.presets
+        target, _ = get_target(context)
+        rhubarb = context.window_manager.rhubarb_panel_settings
         if rhubarb.obj_modes != "timeoffset":
             target["{0}".format(prop_name)] = set_pose
             self.set_keyframes(context, frame_num - self.hold_frame_threshold)
@@ -54,6 +39,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
 
     def modal(self, context, event):
         wm = context.window_manager
+        rhubarb = wm.rhubarb_panel_settings
         wm.progress_update(50)
         try:
             (stdout, stderr) = self.rhubarb.communicate(timeout=1)
@@ -87,7 +73,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
 
                 # Logic for Armature or GPencil obj
                 for cue in results["mouthCues"]:
-                    frame_num = round(cue["start"] * fps) + obj.rhubarb.start_frame
+                    frame_num = round(cue["start"] * fps) + rhubarb.start_frame
                     if frame_num - last_frame > self.hold_frame_threshold:
                         print(
                             "hold frame: {0}".format(
@@ -104,8 +90,8 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                     )
 
                     mouth_shape = "mouth_" + cue["value"].lower()
-                    if mouth_shape in obj.rhubarb:
-                        pose_index = obj.rhubarb[mouth_shape]
+                    if mouth_shape in rhubarb:
+                        pose_index = rhubarb[mouth_shape]
                         print(pose_index)
                     else:
                         pose_index = 0
@@ -136,8 +122,8 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
     def set_keyframes(self, context, frame):
         sc = context.scene
         obj = context.active_object
-        rhubarb = obj.rhubarb
-        prop_name = obj.rhubarb.presets
+        rhubarb = context.window_manager.rhubarb_panel_settings
+        prop_name = rhubarb.presets
 
         # Set target to Armature or GPencil obj
         if rhubarb.obj_modes == "bone":
@@ -164,8 +150,12 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
         preferences = context.preferences
         addon_prefs = preferences.addons[__package__].preferences
 
-        inputfile = bpy.path.abspath(context.object.rhubarb.sound_file)
-        dialogfile = bpy.path.abspath(context.object.rhubarb.dialog_file)
+        inputfile = bpy.path.abspath(
+            context.window_manager.rhubarb_panel_settings.sound_file
+        )
+        dialogfile = bpy.path.abspath(
+            context.window_manager.rhubarb_panel_settings.dialog_file
+        )
         recognizer = bpy.path.abspath(addon_prefs.recognizer)
         executable = bpy.path.abspath(addon_prefs.executable_path)
         # This is ugly, but Blender unpacks the zip without execute permission
@@ -188,7 +178,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
         if dialogfile:
             command.append("--dialogFile")
             command.append(dialogfile)
-
+        wm = context.window_manager
         self.rhubarb = subprocess.Popen(
             command, stdout=subprocess.PIPE, universal_newlines=True
         )
@@ -215,13 +205,14 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
         wm.event_timer_remove(self._timer)
 
 
+classes = (RHUBARB_OT_Execute_Rhubarb_Lipsync,)
+
+
 def register():
-    bpy.utils.register_class(RhubarbLipsyncOperator)
+    for cls in classes:
+        bpy.utils.register_class(cls)
 
 
 def unregister():
-    bpy.utils.unregister_class(RhubarbLipsyncOperator)
-
-
-if __name__ == "__main__":
-    register()
+    for cls in classes:
+        bpy.utils.unregister_class(cls)
