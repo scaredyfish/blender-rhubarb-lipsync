@@ -59,16 +59,15 @@ def mode_options_generator(self, context):
 class Rhubarb_Panel_Settings(bpy.types.PropertyGroup):
     """definitions for rhubarb properties"""
 
-    # TODO these are all set to zero because user must manually initilize them.
-    mouth_a: bpy.props.IntProperty(name="moutha", default=0)
-    mouth_b: bpy.props.IntProperty(name="mouthb", default=0)
-    mouth_c: bpy.props.IntProperty(name="mouthc", default=0)
-    mouth_d: bpy.props.IntProperty(name="mouthd", default=0)
-    mouth_e: bpy.props.IntProperty(name="mouthe", default=0)
-    mouth_f: bpy.props.IntProperty(name="mouthf", default=0)
-    mouth_g: bpy.props.IntProperty(name="mouthg", default=0)
-    mouth_h: bpy.props.IntProperty(name="mouthh", default=0)
-    mouth_x: bpy.props.IntProperty(name="mouthx", default=0)
+    mouth_a: bpy.props.IntProperty(name="moutha")
+    mouth_b: bpy.props.IntProperty(name="mouthb")
+    mouth_c: bpy.props.IntProperty(name="mouthc")
+    mouth_d: bpy.props.IntProperty(name="mouthd")
+    mouth_e: bpy.props.IntProperty(name="mouthe")
+    mouth_f: bpy.props.IntProperty(name="mouthf")
+    mouth_g: bpy.props.IntProperty(name="mouthg")
+    mouth_h: bpy.props.IntProperty(name="mouthh")
+    mouth_x: bpy.props.IntProperty(name="mouthx")
 
     # rhubarb executable dependcies
     sound_file: bpy.props.StringProperty(name="sound_file", subtype="FILE_PATH")

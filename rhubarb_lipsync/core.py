@@ -3,8 +3,36 @@ import bpy
 from bpy_extras.io_utils import ImportHelper
 import bpy, mathutils
 
+mouth_shapes = (
+    "mouth_a",
+    "mouth_b",
+    "mouth_c",
+    "mouth_d",
+    "mouth_e",
+    "mouth_f",
+    "mouth_g",
+    "mouth_h",
+    "mouth_x",
+)
+
 # List to store target's avaliable props
 prop_list = []
+
+
+def initlize_props(rig_settings):
+    """Integer Properties must be initilized if they are not already set to a value
+    NOTE: Default value on prop doesn't return as integer until user resets integer to default."""
+    # if a single setting is set do not initilie props
+    initilized = True
+    for index, mouth in enumerate(mouth_shapes):
+        if not rig_settings.get(mouth):
+            initilized = False
+    if initilized:
+        return
+
+    for index, mouth in enumerate(mouth_shapes):
+        if not rig_settings.get(mouth):
+            rig_settings[mouth] = index
 
 
 def get_target(context):
@@ -21,7 +49,6 @@ def get_target(context):
     else:
         target = context.object
         return target, obj
-    return
 
 
 def refresh_target(context):

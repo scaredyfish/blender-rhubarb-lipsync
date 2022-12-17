@@ -17,6 +17,7 @@ from .core import get_target
 
 
 class RHUBARB_OT_Execute_Rhubarb_Lipsync(bpy.types.Operator):
+    # TODO poll to check if operator can be run
     """Run Rhubarb lipsync"""
 
     bl_idname = "rhubarb.execute_rhubarb_lipsync"

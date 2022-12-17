@@ -1,6 +1,6 @@
 import bpy
 
-from rhubarb_lipsync.core import refresh_target
+from rhubarb_lipsync.core import refresh_target, initlize_props
 
 
 class RHUBARB_PT_Main_Panel(bpy.types.Panel):
@@ -39,9 +39,6 @@ class RHUBARB_PT_Main_Panel(bpy.types.Panel):
             )
         row = layout.row()
         # Load and Select Properties
-
-        if rhubarb.presets == "":
-            row.label(text="No Properties Found", icon="ERROR")
         if not rhubarb.obj_modes == "":
             row.prop(
                 rhubarb,
@@ -52,8 +49,8 @@ class RHUBARB_PT_Main_Panel(bpy.types.Panel):
         # row.operator("rhubarb.enum_get", text="Load Properties")
 
         # User editable Mouth Definitions
+        initlize_props(rhubarb)
         col = layout.column()
-        col.prop(rhubarb, "mouth_a", text="Mouth A (MBP)")
         col.prop(rhubarb, "mouth_b", text="Mouth B (EE/etc)")
         col.prop(rhubarb, "mouth_c", text="Mouth C (E)")
         col.prop(rhubarb, "mouth_d", text="Mouth D (AI)")
