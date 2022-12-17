@@ -33,27 +33,7 @@ def mode_options_generator(self, context):
         "MOD_TIME",
         3,
     )
-
-    if (
-        context.active_object.type == "GPENCIL"
-        and context.object.grease_pencil_modifiers.items() != []
-    ):
-        mode_items = [
-            obj_enum,
-            timeoffset_enum,
-        ]
-        return mode_items
-    if context.active_object.type == "ARMATURE":
-        mode_items = [
-            obj_enum,
-            bone_enum,
-        ]
-        return mode_items
-    else:
-        mode_items = [
-            obj_enum,
-        ]
-        return mode_items
+    return obj_enum, timeoffset_enum, bone_enum
 
 
 class Rhubarb_Panel_Settings(bpy.types.PropertyGroup):

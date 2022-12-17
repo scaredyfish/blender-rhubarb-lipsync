@@ -17,60 +17,53 @@ class RHUBARB_PT_Main_Panel(bpy.types.Panel):
     bpy.types.Scene.bone_selection = bpy.props.StringProperty()
 
     def draw(self, context):
-
         # Panel Definitions
-        sc = context.scene
         rhubarb = context.window_manager.rhubarb_panel_settings
         layout = self.layout
-
-        # Display active object name
-        # layout.label(text=f"Active Object: {obj.name}")  # TODO Improve this.
-        row = layout.row(align=True)
-        row.prop(rhubarb, "obj_modes", text="Target Type", toggle=True)
+        target_col = layout.column()
+        mode_row = target_col.row(align=True)
+        mode_row.prop(rhubarb, "obj_modes", text="Target Type", toggle=True)
 
         obj = refresh_target(context)
         if not obj:
             return
 
         # if obj is Armature select a bone to target
-        if rhubarb.obj_modes == "bone":
-            layout.prop_search(
-                sc, "bone_selection", obj.id_data.pose, "bones", text="Bone"
+        if rhubarb.obj_modes == "bone" and context.active_object.type == "ARMATURE":
+            target_col.prop_search(
+                context.scene, "bone_selection", obj.id_data.pose, "bones", text="Bone"
             )
-        row = layout.row()
         # Load and Select Properties
         if not rhubarb.obj_modes == "":
-            row.prop(
+            target_col.prop(
                 rhubarb,
                 "presets",
                 text="Properties",
             )
 
-        # row.operator("rhubarb.enum_get", text="Load Properties")
-
         # User editable Mouth Definitions
         initlize_props(rhubarb)
-        col = layout.column()
-        col.prop(rhubarb, "mouth_b", text="Mouth B (EE/etc)")
-        col.prop(rhubarb, "mouth_c", text="Mouth C (E)")
-        col.prop(rhubarb, "mouth_d", text="Mouth D (AI)")
-        col.prop(rhubarb, "mouth_e", text="Mouth E (O)")
-        col.prop(rhubarb, "mouth_f", text="Mouth F (WQ)")
-        col.prop(rhubarb, "mouth_g", text="Mouth G (FV)")
-        col.prop(rhubarb, "mouth_h", text="Mouth H (L)")
-        col.prop(rhubarb, "mouth_x", text="Mouth X (rest)")
+        prop_col = layout.column()
+        prop_col.prop(rhubarb, "mouth_b", text="Mouth B (EE/etc)")
+        prop_col.prop(rhubarb, "mouth_c", text="Mouth C (E)")
+        prop_col.prop(rhubarb, "mouth_d", text="Mouth D (AI)")
+        prop_col.prop(rhubarb, "mouth_e", text="Mouth E (O)")
+        prop_col.prop(rhubarb, "mouth_f", text="Mouth F (WQ)")
+        prop_col.prop(rhubarb, "mouth_g", text="Mouth G (FV)")
+        prop_col.prop(rhubarb, "mouth_h", text="Mouth H (L)")
+        prop_col.prop(rhubarb, "mouth_x", text="Mouth X (rest)")
 
         # Set Rhubarb Executable depencies
-        row = layout.row(align=True)
-        row.prop(rhubarb, "sound_file", text="Sound file")
-        row = layout.row(align=True)
-        row.prop(rhubarb, "dialog_file", text="Dialog file")
-        row = layout.row()
-        row.prop(rhubarb, "start_frame", text="Start frame")
+        set_col = layout.column()
+        set_col.separator()
+
+        set_col.prop(rhubarb, "sound_file", text="Sound file")
+        set_col.prop(rhubarb, "dialog_file", text="Dialog file")
+        set_col.prop(rhubarb, "start_frame", text="Start frame")
 
         # Button to execute rhubarb operation
-        row = layout.row()
-        row.operator(operator="rhubarb.execute_rhubarb_lipsync")
+        set_col.separator()
+        set_col.operator(operator="rhubarb.execute_rhubarb_lipsync")
 
 
 classes = (RHUBARB_PT_Main_Panel,)

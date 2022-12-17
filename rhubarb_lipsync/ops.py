@@ -26,6 +26,26 @@ class RHUBARB_OT_Execute_Rhubarb_Lipsync(bpy.types.Operator):
     cue_prefix = "Mouth_"
     hold_frame_threshold = 4
 
+    @classmethod
+    def poll(cls, context: bpy.types.Context):
+        rhubarb = context.window_manager.rhubarb_panel_settings
+        if rhubarb.obj_modes == "":
+            cls.poll_message_set(f"Select a Target Type")
+            return
+        if not context.active_object:
+            cls.poll_message_set(f"Ensure there is an Active Object")
+            return
+        if rhubarb.obj_modes == "bone" and context.active_object.type != "ARMATURE":
+            cls.poll_message_set(f"Active object is not an Armature")
+            return
+        if rhubarb.presets == "":
+            cls.poll_message_set(f"Select an avaliable Property")
+            return
+        if not (rhubarb.sound_file or rhubarb.sound_file):
+            cls.poll_message_set(f"Select  Sound/Dialogue File")
+            return
+        return True
+
     def get_pose_dest(self, context, frame_num, set_pose):
         obj = context.active_object
         prop_name = context.window_manager.rhubarb_panel_settings.presets
@@ -160,7 +180,13 @@ class RHUBARB_OT_Execute_Rhubarb_Lipsync(bpy.types.Operator):
         recognizer = bpy.path.abspath(addon_prefs.recognizer)
         executable = bpy.path.abspath(addon_prefs.executable_path)
         # This is ugly, but Blender unpacks the zip without execute permission
-        os.chmod(executable, 0o744)
+        try:
+            os.chmod(executable, 0o744)
+        except FileNotFoundError:
+            self.report(
+                {"ERROR"},
+                f"CHECK EXECUTABLE PATH IN ADDON PREFERENCES. \n Rhubarb Executable not found at {executable}.",
+            )
 
         # Lines that need to be excuted before the modal operator can go below this comment.
 
