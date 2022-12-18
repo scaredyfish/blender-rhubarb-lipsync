@@ -1,5 +1,5 @@
 import bpy
-from rhubarb_lipsync.core import (
+from ..core import (
     prop_list,
 )
 

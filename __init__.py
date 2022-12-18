@@ -1,4 +1,6 @@
-from rhubarb_lipsync import ops, props, ui, prefs
+from . import ops, props, ui, prefs
+
+__version__ = "3.0.2"
 
 bl_info = {
     "name": "Rhubarb Lipsync-DEV",
