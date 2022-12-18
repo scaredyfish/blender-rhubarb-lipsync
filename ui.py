@@ -1,6 +1,6 @@
 import bpy
 
-from ..core import refresh_target, initlize_props
+from .core import refresh_target, initlize_props
 
 
 class RHUBARB_PT_Main_Panel(bpy.types.Panel):

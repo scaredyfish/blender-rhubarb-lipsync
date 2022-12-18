@@ -1,5 +1,5 @@
 import bpy
-from ..core import (
+from .core import (
     prop_list,
 )
 
