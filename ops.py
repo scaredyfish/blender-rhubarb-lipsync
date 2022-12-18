@@ -17,7 +17,6 @@ from .core import get_target
 
 
 class RHUBARB_OT_Execute_Rhubarb_Lipsync(bpy.types.Operator):
-    # TODO poll to check if operator can be run
     """Run Rhubarb lipsync"""
 
     bl_idname = "rhubarb.execute_rhubarb_lipsync"
@@ -46,21 +45,23 @@ class RHUBARB_OT_Execute_Rhubarb_Lipsync(bpy.types.Operator):
             return
         return True
 
-    def get_pose_dest(self, context, frame_num, set_pose):
-        obj = context.active_object
-        prop_name = context.window_manager.rhubarb_panel_settings.presets
-        target, _ = get_target(context)
-        rhubarb = context.window_manager.rhubarb_panel_settings
+    def set_keyframes_on_target(self, obj, target, rhubarb, frame_num, set_pose):
+        prop_name = rhubarb.presets
         if rhubarb.obj_modes != "timeoffset":
             target["{0}".format(prop_name)] = set_pose
-            self.set_keyframes(context, frame_num - self.hold_frame_threshold)
+            self.set_keyframe(target, rhubarb, frame_num - self.hold_frame_threshold)
         else:
             set_pose = target[f"{prop_name}"].offset = set_pose
-            self.set_keyframes(context, frame_num - self.hold_frame_threshold)
+            self.set_keyframe(target, rhubarb, frame_num - self.hold_frame_threshold)
+        obj.animation_data.action.fcurves[-1].keyframe_points[
+            -1
+        ].interpolation = "CONSTANT"
 
     def modal(self, context, event):
         wm = context.window_manager
         rhubarb = wm.rhubarb_panel_settings
+        target, obj = get_target(context)
+
         wm.progress_update(50)
         try:
             (stdout, stderr) = self.rhubarb.communicate(timeout=1)
@@ -88,7 +89,6 @@ class RHUBARB_OT_Execute_Rhubarb_Lipsync(bpy.types.Operator):
                 wm.event_timer_remove(self._timer)
                 results = json.loads(stdout)
                 fps = context.scene.render.fps
-                obj = context.active_object
                 last_frame = 0
                 prev_pose = 0
 
@@ -102,7 +102,9 @@ class RHUBARB_OT_Execute_Rhubarb_Lipsync(bpy.types.Operator):
                             )
                         )
                         # Set prev_pose for Armature or GPencil obj
-                        self.get_pose_dest(context, frame_num, prev_pose)
+                        self.set_keyframes_on_target(
+                            obj, target, rhubarb, frame_num, prev_pose
+                        )
 
                     print(
                         "start: {0} frame: {1} value: {2}".format(
@@ -119,7 +121,9 @@ class RHUBARB_OT_Execute_Rhubarb_Lipsync(bpy.types.Operator):
                         print(pose_index)
 
                     # Set pose_index for Armature or GPencil obj
-                    self.get_pose_dest(context, frame_num, pose_index)
+                    self.set_keyframes_on_target(
+                        obj, target, rhubarb, frame_num, pose_index
+                    )
                     prev_pose = pose_index
                     last_frame = frame_num
 
@@ -140,32 +144,18 @@ class RHUBARB_OT_Execute_Rhubarb_Lipsync(bpy.types.Operator):
             wm.progress_end()
             return {"CANCELLED"}
 
-    def set_keyframes(self, context, frame):
-        sc = context.scene
-        obj = context.active_object
-        rhubarb = context.window_manager.rhubarb_panel_settings
-        prop_name = rhubarb.presets
-
-        # Set target to Armature or GPencil obj
-        if rhubarb.obj_modes == "bone":
-            bone = sc.bone_selection
-            target = obj.pose.bones["{0}".format(bone)]
-            key_name = f'["{prop_name}"]'
+    def set_keyframe(self, target, rhubarb, frame):
+        data_path = rhubarb.presets
+        key_name = f'["{data_path}"]'
         if rhubarb.obj_modes == "timeoffset":
-            target = obj.grease_pencil_modifiers[f"{prop_name}"]
             key_name = "offset"
-        if rhubarb.obj_modes == "obj":
-            target = obj
-            key_name = f'["{prop_name}"]'
+            target = target.get(data_path)
 
         # Keyframe target
         target.keyframe_insert(
             data_path=key_name,
             frame=frame,
         )
-        context.object.animation_data.action.fcurves[-1].keyframe_points[
-            -1
-        ].interpolation = "CONSTANT"
 
     def invoke(self, context, event):
         preferences = context.preferences
