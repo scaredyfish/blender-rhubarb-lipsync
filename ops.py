@@ -1,6 +1,5 @@
 from distutils.util import execute
 import enum
-from operator import index
 import bpy
 from bpy import types
 from bpy.props import IntProperty, FloatProperty
@@ -14,46 +13,55 @@ from threading import Thread, local
 from queue import Queue, Empty
 import json
 import os
+from .core import get_target, debugger
 
 
-class RhubarbLipsyncOperator(bpy.types.Operator):
+class RHUBARB_OT_Execute_Rhubarb_Lipsync(bpy.types.Operator):
     """Run Rhubarb lipsync"""
 
-    bl_idname = "object.rhubarb_lipsync"
+    bl_idname = "rhubarb.execute_rhubarb_lipsync"
     bl_label = "Rhubarb lipsync"
 
     cue_prefix = "Mouth_"
     hold_frame_threshold = 4
 
-    def get_the_target(self, context):
-        sc = context.scene
-        obj = context.active_object
-        rhubarb = obj.rhubarb
-        if rhubarb.obj_modes == "bone":
-            bone = sc.bone_selection
-            target = obj.pose.bones[f"{bone}"]
-            return target
-        if rhubarb.obj_modes == "timeoffset":
-            target = obj.grease_pencil_modifiers
-            return target
-        else:
-            target = context.object
-            return target
+    @classmethod
+    def poll(cls, context: bpy.types.Context):
+        rhubarb = context.window_manager.rhubarb_panel_settings
+        if rhubarb.obj_modes == "":
+            cls.poll_message_set(f"Select a Target Type")
+            return
+        if not context.active_object:
+            cls.poll_message_set(f"Ensure there is an Active Object")
+            return
+        if rhubarb.obj_modes == "bone" and context.active_object.type != "ARMATURE":
+            cls.poll_message_set(f"Active object is not an Armature")
+            return
+        if rhubarb.presets == "":
+            cls.poll_message_set(f"Select an avaliable Property")
+            return
+        if not (rhubarb.sound_file or rhubarb.sound_file):
+            cls.poll_message_set(f"Select  Sound/Dialogue File")
+            return
+        return True
 
-    def get_pose_dest(self, context, frame_num, set_pose):
-        obj = context.active_object
-        prop_name = context.object.rhubarb.presets
-        target = self.get_the_target(context)
-        rhubarb = obj.rhubarb
+    def set_keyframes_on_target(self, obj, target, rhubarb, frame_num, set_pose):
+        prop_name = rhubarb.presets
         if rhubarb.obj_modes != "timeoffset":
             target["{0}".format(prop_name)] = set_pose
-            self.set_keyframes(context, frame_num - self.hold_frame_threshold)
+            self.set_keyframe(target, rhubarb, frame_num - self.hold_frame_threshold)
         else:
             set_pose = target[f"{prop_name}"].offset = set_pose
-            self.set_keyframes(context, frame_num - self.hold_frame_threshold)
+            self.set_keyframe(target, rhubarb, frame_num - self.hold_frame_threshold)
+        obj.animation_data.action.fcurves[-1].keyframe_points[
+            -1
+        ].interpolation = "CONSTANT"
 
     def modal(self, context, event):
         wm = context.window_manager
+        rhubarb = wm.rhubarb_panel_settings
+        target, obj = get_target(context)
+
         wm.progress_update(50)
         try:
             (stdout, stderr) = self.rhubarb.communicate(timeout=1)
@@ -61,7 +69,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
             try:
                 result = json.loads(stderr)
                 if result["type"] == "progress":
-                    print(result["log"]["message"])
+                    debugger(result["log"]["message"])
                     self.message = result["log"]["message"]
 
                 if result["type"] == "failure":
@@ -81,95 +89,93 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                 wm.event_timer_remove(self._timer)
                 results = json.loads(stdout)
                 fps = context.scene.render.fps
-                obj = context.active_object
                 last_frame = 0
                 prev_pose = 0
 
                 # Logic for Armature or GPencil obj
                 for cue in results["mouthCues"]:
-                    frame_num = round(cue["start"] * fps) + obj.rhubarb.start_frame
+                    frame_num = round(cue["start"] * fps) + rhubarb.start_frame
                     if frame_num - last_frame > self.hold_frame_threshold:
-                        print(
+                        debugger(
                             "hold frame: {0}".format(
                                 frame_num - self.hold_frame_threshold
                             )
                         )
                         # Set prev_pose for Armature or GPencil obj
-                        self.get_pose_dest(context, frame_num, prev_pose)
+                        self.set_keyframes_on_target(
+                            obj, target, rhubarb, frame_num, prev_pose
+                        )
 
-                    print(
+                    debugger(
                         "start: {0} frame: {1} value: {2}".format(
                             cue["start"], frame_num, cue["value"]
                         )
                     )
 
                     mouth_shape = "mouth_" + cue["value"].lower()
-                    if mouth_shape in obj.rhubarb:
-                        pose_index = obj.rhubarb[mouth_shape]
-                        print(pose_index)
+                    if mouth_shape in rhubarb:
+                        pose_index = rhubarb[mouth_shape]
                     else:
                         pose_index = 0
-                        print(pose_index)
 
                     # Set pose_index for Armature or GPencil obj
-                    self.get_pose_dest(context, frame_num, pose_index)
+                    self.set_keyframes_on_target(
+                        obj, target, rhubarb, frame_num, pose_index
+                    )
                     prev_pose = pose_index
                     last_frame = frame_num
 
                     wm.progress_end()
+                self.report({"INFO"}, f"Rhubarb Lipsync Complete on '{obj.name}'")
                 return {"FINISHED"}
 
             return {"PASS_THROUGH"}
         except subprocess.TimeoutExpired as ex:
             return {"PASS_THROUGH"}
         except json.decoder.JSONDecodeError:
-            print(stdout)
-            print("Error!!! Json Decoder")
+            debugger(stdout)
             wm.progress_end()
+            self.report({"ERROR"}, "Error!!! Json Decoder")
             return {"CANCELLED"}
         except Exception as ex:
             template = "An exception of type {0} occurred. Arguments:\n{1!r}"
-            print(template.format(type(ex).__name__, ex.args))
+            self.report({"ERROR"}, template.format(type(ex).__name__, ex.args))
             wm.progress_end()
             return {"CANCELLED"}
 
-    def set_keyframes(self, context, frame):
-        sc = context.scene
-        obj = context.active_object
-        rhubarb = obj.rhubarb
-        prop_name = obj.rhubarb.presets
-
-        # Set target to Armature or GPencil obj
-        if rhubarb.obj_modes == "bone":
-            bone = sc.bone_selection
-            target = obj.pose.bones["{0}".format(bone)]
-            key_name = f'["{prop_name}"]'
+    def set_keyframe(self, target, rhubarb, frame):
+        data_path = rhubarb.presets
+        key_name = f'["{data_path}"]'
         if rhubarb.obj_modes == "timeoffset":
-            target = obj.grease_pencil_modifiers[f"{prop_name}"]
             key_name = "offset"
-        if rhubarb.obj_modes == "obj":
-            target = obj
-            key_name = f'["{prop_name}"]'
+            target = target.get(data_path)
 
         # Keyframe target
         target.keyframe_insert(
             data_path=key_name,
             frame=frame,
         )
-        context.object.animation_data.action.fcurves[-1].keyframe_points[
-            -1
-        ].interpolation = "CONSTANT"
 
     def invoke(self, context, event):
         preferences = context.preferences
         addon_prefs = preferences.addons[__package__].preferences
 
-        inputfile = bpy.path.abspath(context.object.rhubarb.sound_file)
-        dialogfile = bpy.path.abspath(context.object.rhubarb.dialog_file)
+        inputfile = bpy.path.abspath(
+            context.window_manager.rhubarb_panel_settings.sound_file
+        )
+        dialogfile = bpy.path.abspath(
+            context.window_manager.rhubarb_panel_settings.dialog_file
+        )
         recognizer = bpy.path.abspath(addon_prefs.recognizer)
         executable = bpy.path.abspath(addon_prefs.executable_path)
         # This is ugly, but Blender unpacks the zip without execute permission
-        os.chmod(executable, 0o744)
+        try:
+            os.chmod(executable, 0o744)
+        except FileNotFoundError:
+            self.report(
+                {"ERROR"},
+                f"CHECK EXECUTABLE PATH IN ADDON PREFERENCES. \n Rhubarb Executable not found at {executable}.",
+            )
 
         # Lines that need to be excuted before the modal operator can go below this comment.
 
@@ -188,7 +194,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
         if dialogfile:
             command.append("--dialogFile")
             command.append(dialogfile)
-
+        wm = context.window_manager
         self.rhubarb = subprocess.Popen(
             command, stdout=subprocess.PIPE, universal_newlines=True
         )
@@ -215,13 +221,14 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
         wm.event_timer_remove(self._timer)
 
 
+classes = (RHUBARB_OT_Execute_Rhubarb_Lipsync,)
+
+
 def register():
-    bpy.utils.register_class(RhubarbLipsyncOperator)
+    for cls in classes:
+        bpy.utils.register_class(cls)
 
 
 def unregister():
-    bpy.utils.unregister_class(RhubarbLipsyncOperator)
-
-
-if __name__ == "__main__":
-    register()
+    for cls in classes:
+        bpy.utils.unregister_class(cls)

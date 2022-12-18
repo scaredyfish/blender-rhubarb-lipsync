@@ -1,3 +1,5 @@
+from . import ops, props, ui, prefs
+
 __version__ = "3.0.2"
 
 bl_info = {
@@ -15,26 +17,15 @@ bl_info = {
 }
 
 
-if "bpy" in locals():
-    import importlib
-
-    if "op_blender_rhubarb" in locals():
-        importlib.reload(op_blender_rhubarb)
-        importlib.reload(pnl_blender_rhubarb)
-        importlib.reload(prefs_blender_rhubarb)
-else:
-    from . import op_blender_rhubarb, pnl_blender_rhubarb, prefs_blender_rhubarb
-
-import bpy
-
-
 def register():
-    op_blender_rhubarb.register()
-    pnl_blender_rhubarb.register()
-    prefs_blender_rhubarb.register()
+    ops.register()
+    ui.register()
+    props.register()
+    prefs.register()
 
 
 def unregister():
-    op_blender_rhubarb.unregister()
-    pnl_blender_rhubarb.unregister()
-    prefs_blender_rhubarb.unregister()
+    ops.unregister()
+    ui.unregister()
+    props.unregister()
+    prefs.unregister()

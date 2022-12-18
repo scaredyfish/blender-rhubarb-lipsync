@@ -1,3 +1,6 @@
+**/__pycache__
+**__pycache__/
+
 .idea
 venv
 __pycache__
