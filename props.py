@@ -6,8 +6,9 @@ from .core import (
 # Generate list of items from target's props
 def enum_items_generator(self, context):
     enum_items = []
-    for e, d in enumerate(prop_list):
-        enum_items.append((d[0], d[0], d[0], e))
+    for index, prop in enumerate(prop_list):
+        # Enum items order(key, name, description, position)
+        enum_items.append((prop[0], prop[0], prop[2], index))
     return enum_items
 
 
@@ -15,14 +16,14 @@ def mode_options_generator(self, context):
     obj_enum = (
         "obj",
         "Object",
-        "Keyframe integer or float property on any object's data",
+        "Keyframe a custom integer or float property on the active object's data",
         "OBJECT_DATA",
         1,
     )
     bone_enum = (
         "bone",
         "Bone",
-        "Keyframe integer or float property on any bone in Pose Mode",
+        "Keyframe a custom integer or float property on the active pose bone in Pose Mode",
         "BONE_DATA",
         2,
     )

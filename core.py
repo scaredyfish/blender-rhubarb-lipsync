@@ -66,10 +66,27 @@ def update_list(rhubarb_settings, target):
     for prop_name, _ in target.items():
         # if GPencil find TimeOffset modifier's offset property
         if rhubarb_settings.obj_modes != "timeoffset":
-            if "int" in str(type(target[f"{prop_name}"])) or "float" in str(
-                type(target[f"{prop_name}"])
-            ):
-                prop_list.append((prop_name, prop_name, prop_name))
+            if "int" in str(type(target[f"{prop_name}"])):
+                prop_list.append(
+                    (
+                        prop_name,
+                        prop_name,
+                        f"Integer '{prop_name}' on object '{target.id_data.name}' ",
+                    )
+                )
+            if "float" in str(type(target[f"{prop_name}"])):
+                prop_list.append(
+                    (
+                        prop_name,
+                        prop_name,
+                        f"Float '{prop_name}' on object '{target.id_data.name}' ",
+                    )
+                )
         else:
-            # else find INT properties on selected bone
-            prop_list.append((prop_name, prop_name, prop_name))
+            prop_list.append(
+                (
+                    prop_name,
+                    prop_name,
+                    f"Modifier '{prop_name}' on grease pencil object '{target.id_data.name}' ",
+                )
+            )
