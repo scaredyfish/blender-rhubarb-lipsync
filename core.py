@@ -35,6 +35,10 @@ def initlize_props(rig_settings):
             rig_settings[mouth] = index
 
 
+def debugger(msg):
+    print(f"Blender Rhubarb Lip Sync: {msg}")
+
+
 def get_target(context):
     sc = context.scene
     obj = context.active_object

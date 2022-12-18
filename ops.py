@@ -13,7 +13,7 @@ from threading import Thread, local
 from queue import Queue, Empty
 import json
 import os
-from .core import get_target
+from .core import get_target, debugger
 
 
 class RHUBARB_OT_Execute_Rhubarb_Lipsync(bpy.types.Operator):
@@ -69,7 +69,7 @@ class RHUBARB_OT_Execute_Rhubarb_Lipsync(bpy.types.Operator):
             try:
                 result = json.loads(stderr)
                 if result["type"] == "progress":
-                    print(result["log"]["message"])
+                    debugger(result["log"]["message"])
                     self.message = result["log"]["message"]
 
                 if result["type"] == "failure":
@@ -96,7 +96,7 @@ class RHUBARB_OT_Execute_Rhubarb_Lipsync(bpy.types.Operator):
                 for cue in results["mouthCues"]:
                     frame_num = round(cue["start"] * fps) + rhubarb.start_frame
                     if frame_num - last_frame > self.hold_frame_threshold:
-                        print(
+                        debugger(
                             "hold frame: {0}".format(
                                 frame_num - self.hold_frame_threshold
                             )
@@ -106,7 +106,7 @@ class RHUBARB_OT_Execute_Rhubarb_Lipsync(bpy.types.Operator):
                             obj, target, rhubarb, frame_num, prev_pose
                         )
 
-                    print(
+                    debugger(
                         "start: {0} frame: {1} value: {2}".format(
                             cue["start"], frame_num, cue["value"]
                         )
@@ -115,10 +115,8 @@ class RHUBARB_OT_Execute_Rhubarb_Lipsync(bpy.types.Operator):
                     mouth_shape = "mouth_" + cue["value"].lower()
                     if mouth_shape in rhubarb:
                         pose_index = rhubarb[mouth_shape]
-                        print(pose_index)
                     else:
                         pose_index = 0
-                        print(pose_index)
 
                     # Set pose_index for Armature or GPencil obj
                     self.set_keyframes_on_target(
@@ -128,19 +126,20 @@ class RHUBARB_OT_Execute_Rhubarb_Lipsync(bpy.types.Operator):
                     last_frame = frame_num
 
                     wm.progress_end()
+                self.report({"INFO"}, f"Rhubarb Lipsync Complete on '{obj.name}'")
                 return {"FINISHED"}
 
             return {"PASS_THROUGH"}
         except subprocess.TimeoutExpired as ex:
             return {"PASS_THROUGH"}
         except json.decoder.JSONDecodeError:
-            print(stdout)
-            print("Error!!! Json Decoder")
+            debugger(stdout)
             wm.progress_end()
+            self.report({"ERROR"}, "Error!!! Json Decoder")
             return {"CANCELLED"}
         except Exception as ex:
             template = "An exception of type {0} occurred. Arguments:\n{1!r}"
-            print(template.format(type(ex).__name__, ex.args))
+            self.report({"ERROR"}, template.format(type(ex).__name__, ex.args))
             wm.progress_end()
             return {"CANCELLED"}
 
