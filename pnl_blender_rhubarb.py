@@ -18,57 +18,79 @@ class RhubarbLipsyncPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        if context.object.pose_library:
-            prop = context.object.pose_library.mouth_shapes
+        prop = context.object.mouth_shapes
 
-            col = layout.column()
-            col.prop(prop, 'mouth_a', text="Mouth A (MBP)")
-            col.prop(prop, 'mouth_b', text="Mouth B (EE/etc)")
-            col.prop(prop, 'mouth_c', text="Mouth C (E)")
-            col.prop(prop, 'mouth_d', text="Mouth D (AI)")
-            col.prop(prop, 'mouth_e', text="Mouth E (O)")
-            col.prop(prop, 'mouth_f', text="Mouth F (WQ)")
-            col.prop(prop, 'mouth_g', text="Mouth G (FV)")
-            col.prop(prop, 'mouth_h', text="Mouth H (L)")
-            col.prop(prop, 'mouth_x', text="Mouth X (rest)")
+        col = layout.column()
+        col.prop(prop, 'mouth_a', text="Mouth A (MBP)")
+        col.prop(prop, 'mouth_b', text="Mouth B (EE/etc)")
+        col.prop(prop, 'mouth_c', text="Mouth C (E)")
+        col.prop(prop, 'mouth_d', text="Mouth D (AI)")
+        col.prop(prop, 'mouth_e', text="Mouth E (O)")
+        col.prop(prop, 'mouth_f', text="Mouth F (WQ)")
+        col.prop(prop, 'mouth_g', text="Mouth G (FV)")
+        col.prop(prop, 'mouth_h', text="Mouth H (L)")
+        col.prop(prop, 'mouth_x', text="Mouth X (rest)")
 
-            row = layout.row(align=True)
-            row.prop(prop, 'sound_file', text='Sound file')
+        row = layout.row(align=True)
+        row.prop(prop, 'sound_file', text='Sound file')
 
-            row = layout.row(align=True)
-            row.prop(prop, 'dialog_file', text='Dialog file')
+        row = layout.row(align=True)
+        row.prop(prop, 'dialog_file', text='Dialog file')
 
+        row = layout.row()
+        row.prop(prop, 'start_frame', text='Start frame')
+
+        row = layout.row()
+
+        if not (context.preferences.addons[__package__].preferences.executable_path):
+            row.label(text="Please set rhubarb executable location in addon preferences")
             row = layout.row()
-            row.prop(prop, 'start_frame', text='Start frame')
 
-            row = layout.row()
+        row.operator(operator = "object.rhubarb_lipsync")
 
-            if not (context.preferences.addons[__package__].preferences.executable_path):
-                row.label(text="Please set rhubarb executable location in addon preferences")
-                row = layout.row()
 
-            row.operator(operator = "object.rhubarb_lipsync")
+#https://blender.stackexchange.com/a/78592 
+enum_items_store = []
 
+def enum_items(self, context):
+
+    items = []
+    for action in bpy.data.actions:
+        not_an_action = False
+        if (not(action.asset_data is None)):
+            for i in action.fcurves:
+                if (not (i.data_path.split("\"")[1] in context.object.pose.bones)):
+                    not_an_action = True
+                    print("hello!")    
+                    break
+                    
         else:
-            row = layout.row(align=True)
-            row.label(text="Rhubarb Lipsync requires a pose library")
+            continue
+        if not_an_action:
+            continue
+        # NEW CODE
+        # Scan the list of IDs to see if we already have one for this mesh
+        maxid = -1
+        id = -1
+        found = False
+        for idrec in enum_items_store:
+            id = idrec[0]
+            if id > maxid:
+                maxid = id
+            if idrec[1] == action.name:
+                found = True
+                break
 
+        if not found:
+            enum_items_store.append((maxid+1, action.name))
 
-pose_markers = []
+        # AMENDED CODE - include the ID
+        items.append( (action.name, action.name, "", id) )
 
-def pose_markers_items(self, context):
-    """Dynamic list of items for Object.pose_libs_for_char."""
-
-    lib = bpy.context.object.pose_library
-
-    if not context or not context.object:
-        return []
-
-    pose_markers = [(marker, marker, 'Poses', '', idx) for idx, marker in enumerate(lib.pose_markers.keys())]
-    return pose_markers
+    return items
 
 poses = bpy.props.EnumProperty(
-    items=pose_markers_items,
+    items=enum_items,
     name='Poses',
     description='Poses',
 )
@@ -93,7 +115,7 @@ def register():
     bpy.utils.register_class(MouthShapesProperty)
     bpy.utils.register_class(RhubarbLipsyncPanel)
 
-    bpy.types.Action.mouth_shapes = bpy.props.PointerProperty(type=MouthShapesProperty)
+    bpy.types.Object.mouth_shapes = bpy.props.PointerProperty(type=MouthShapesProperty)
 
 
 def unregister():
