@@ -10,6 +10,9 @@ from threading  import Thread
 from queue import Queue, Empty
 import json
 import os
+from mathutils import Matrix
+
+
 
 class RhubarbLipsyncOperator(bpy.types.Operator):
     """Run Rhubarb lipsync"""
@@ -58,16 +61,16 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                 fps = context.scene.render.fps
                 lib = context.object.pose_library
                 last_frame = 0
-                prev_pose = 0
+                prev_pose = context.object.pose_library.mouth_shapes["mouth_x"]
 
                 for cue in results['mouthCues']:
                     frame_num = round(cue['start'] * fps) + lib.mouth_shapes.start_frame
                     
+                    
                     # add hold key if time since last key is large
                     if frame_num - last_frame > self.hold_frame_threshold:
                         print("hold frame: {0}".format(frame_num- self.hold_frame_threshold))
-                        bpy.ops.poselib.apply_pose(pose_index=prev_pose)
-                        self.set_keyframes(context, frame_num - self.hold_frame_threshold)
+                        self.apply_pose(context, frame_num - self.hold_frame_threshold, bpy.data.actions[prev_pose])
 
                     print("start: {0} frame: {1} value: {2}".format(cue['start'], frame_num , cue['value']))
 
@@ -75,10 +78,9 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
                     if mouth_shape in context.object.pose_library.mouth_shapes:
                         pose_index = context.object.pose_library.mouth_shapes[mouth_shape]
                     else:
-                        pose_index = 0
-
-                    bpy.ops.poselib.apply_pose(pose_index=pose_index)
-                    self.set_keyframes(context, frame_num)
+                        pose_index = context.object.pose_library.mouth_shapes["mouth_x"]
+                    
+                    self.apply_pose(context, frame_num - self.hold_frame_threshold, bpy.data.actions[pose_index])
                     
 
                     prev_pose = pose_index
@@ -99,15 +101,17 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
             print(template.format(type(ex).__name__, ex.args))
             wm.progress_end()
             return {'CANCELLED'}
-
-    def set_keyframes(self, context, frame):
-        for bone in context.selected_pose_bones:
-            bone.keyframe_insert(data_path='location', frame=frame)
-            if bone.rotation_mode == 'QUATERNION':
-                bone.keyframe_insert(data_path='rotation_quaternion', frame=frame)
-            else:
-                bone.keyframe_insert(data_path='rotation_euler', frame=frame)
-            bone.keyframe_insert(data_path='scale', frame=frame)
+    
+    def apply_pose(self,context, frame, pose):
+        bpy.context.scene.frame_set(frame)
+        
+        print(pose)
+        
+        context.object.pose.apply_pose_from_action(action=pose,evaluation_time=frame)
+        
+        for i in pose.fcurves:
+            i.evaluate(frame)
+            context.object.pose.bones[i.data_path.split("\"")[1]].keyframe_insert(data_path=i.data_path.split("]")[1].replace(".",""), frame=frame)
 
     def invoke(self, context, event):
         preferences = context.preferences
@@ -149,6 +153,7 @@ class RhubarbLipsyncOperator(bpy.types.Operator):
     def cancel(self, context):
         wm = context.window_manager
         wm.event_timer_remove(self._timer)
+        
 
 
 
